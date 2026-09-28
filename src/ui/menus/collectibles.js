@@ -44,7 +44,7 @@ export function createCollectiblesPage(sys) {
     } else if (cat === 'landmark') {
       grid.innerHTML = list.map(l => { const th = save.state.photoThumbs[l.id]; const ok = got.has(l.id);
         return `<div class="sys-citem photo ${ok ? 'got' : ''}"><div class="img" style="${th ? `background-image:url(${th})` : ''}">${th ? '' : `<div class="q">${ok ? '' : '?'}</div>`}${ok ? '<div class="stamp">PHOTOGRAPHED</div>' : ''}</div>
-          <div class="txt"><div class="dn">${distName(l.district)}</div><div class="nm">${ok || sys.towers.revealed(l.district) ? l.name : '???'}</div><div class="ds">${ok ? l.desc : sys.towers.revealed(l.district) ? 'Frame it and press [F], or capture it in Photo Mode.' : 'Locked'}</div></div></div>`; }).join('');
+          <div class="txt"><div class="dn">${distName(l.district)}</div><div class="nm">${ok || sys.towers.revealed(l.district) ? l.name : '???'}</div><div class="ds">${ok ? l.desc : sys.towers.revealed(l.district) ? 'Frame it and use Interact, or capture it in Photo Mode.' : 'Locked'}</div></div></div>`; }).join('');
     } else if (cat === 'photo') {
       grid.innerHTML = list.map(p => { const ok = got.has(p.id); const th = ok ? save.state.photoThumbs[p.id] : null;
         return `<div class="sys-citem photo ${ok ? 'got' : ''}"><div class="img sepia" data-hint="${p.id}" style="${th ? `background-image:url(${th})` : ''}"><div class="q">…</div>${ok ? '<div class="stamp">MATCHED</div>' : ''}</div>

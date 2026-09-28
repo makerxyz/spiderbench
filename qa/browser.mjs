@@ -23,6 +23,7 @@ try{
  const url=`http://127.0.0.1:${server.address().port}/world/index.html?q=low&profile`;
  await page.goto(url,{waitUntil:'domcontentloaded',timeout:60000});
  await page.waitForFunction(()=>window.__ctx?.framesDrawn >= 4 && (!document.querySelector('#boot') || document.querySelector('#boot').classList.contains('out')),{},{timeout:420000});
+ await page.waitForFunction(()=>!document.querySelector('#boot'),{},{timeout:10000});
  log('ready',JSON.stringify(await page.evaluate(()=>({pos:__ctx.player.body.position,conflicts:__ctx.input.router.conflicts(),physics:__ctx.player.physics.stats}))));
  if(mobile) {
   const controls=page.locator('[data-helix-mobile-controls]');
@@ -45,12 +46,22 @@ try{
   await page.screenshot({path:resolve(evidence,'mobile-more.png')});
   for (const name of ['Traversal','Combat','Platform','Back']) {
     await controls.getByRole('button',{name,exact:true}).tap();
+    await controls.getByRole('button',{name:'More controls',exact:true}).tap();
     const bounds=await controls.locator('.hx-panel button:visible').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom}}));
     assert.ok(bounds.every(r=>r.left>=0&&r.right<=page.viewportSize().width&&r.top>=0), 'More page fits the viewport');
+    await page.screenshot({path:resolve(evidence,`mobile-page-${name.toLowerCase()}.png`)});
   }
   await controls.getByRole('button',{name:'Close controls',exact:true}).tap();
   await page.setViewportSize({width:844,height:390});
   await page.screenshot({path:resolve(evidence,'mobile-landscape.png')});
+  const tower=await page.evaluate(()=>{const t=__sys.towers.nearestInactive(__ctx.player.position);__ctx.player.teleport(t.pos.clone().add(new __ctx.THREE.Vector3(3,1.2,0)));return t.id});
+  const interact=controls.getByRole('button',{name:'Activate Research Tower',exact:true});
+  await interact.waitFor({state:'visible',timeout:30000});
+  const box=await interact.boundingBox();
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:box.x+box.width/2,y:box.y+box.height/2,id:2}]});
+  await page.waitForFunction(id=>__sys.towers.isActive(id),tower,{timeout:60000});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  log('mobile-interaction',JSON.stringify({tower,activated:true}));
   log('mobile',JSON.stringify({before,after,controllerCount:await controls.count()}));
   await writeFile(resolve(evidence,'browser-mobile.json'),JSON.stringify({errors,logs,requests,before,after},null,2));
  } else {

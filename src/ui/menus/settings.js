@@ -38,12 +38,12 @@ export function createSettingsPage(sys) {
       ${range('mouseSensitivity', 0.2, 3, 0.05, 'Camera Sensitivity', 'Mouse / right stick look speed', FMT.mouseSensitivity)}
       ${seg('invertY', [['false', 'Off'], ['true', 'On']], 'Invert Y-Axis', 'Flip vertical camera look')}
       <div class="sys-h3" style="margin-top:28px">Key Bindings</div>
-      <div class="sys-binds"><div class="h">Action</div><div class="h k">Keyboard / Mouse</div><div class="h k">Gamepad</div>
-      ${[['Move', 'W A S D', 'Left Stick'], ['Camera', 'Mouse', 'Right Stick'], ['Web-Swing (hold)', 'Right Mouse', 'R2'], ['Parkour (ground) / Wall-Run (walls)', 'Shift', 'R2'], ['Parkour (ground)', 'Right Mouse', 'R2 (ground)'],
-        ['Jump (hold to charge)', 'Space', 'Cross / A'], ['Web-Zip / Point-Launch', 'E / Middle Mouse', 'L2 + R2'], ['Dive / Drop', 'C / Ctrl', 'Circle / B'], ['Quick Web Boost (air)', 'Q', 'L1 / LB'], ['Web Tightrope (perched)', 'T, then W / S', '—'], ['Web Slingshot (ground)', 'Ctrl + Left / Right Mouse', '—'],
-        ['Attack / Launcher (combat)', 'Left Mouse (hold)', 'Square / X'], ['Dodge (combat)', 'C / Ctrl · Space jump evades a warning', 'Circle / B'], ['Web Shooter / Web Strike (combat)', 'F / E', 'R1 / Triangle'], ['Throw / Finisher / Heal (combat)', 'R / Q / Z', '—'],
-        ['Interact / Photograph', 'F (hold)', '—'], ['Pause Menu', 'Esc / P', 'Options / Start'], ['Map', 'M', 'Touchpad / View'], ['Photo Mode', 'V (or pause menu)', '—'], ['Controls Help', 'H', '—']]
-        .map(([a, k, p]) => `<div>${a}</div><div class="k"><span class="sys-key">${k}</span></div><div class="k" style="color:var(--sys-soft)">${p}</div>`).join('')}</div>`;
+      <div class="sys-binds" style="grid-template-columns:1fr 1fr"><div class="h">Action</div><div class="h k">Binding</div>
+      ${[['Move', 'move'], ['Camera', 'look'], ['Web-Swing (hold)', 'spider.swing'], ['Parkour / Wall-Run', 'sprint'],
+        ['Jump (hold to charge)', 'jump'], ['Web-Zip / Point-Launch', 'spider.zip'], ['Dive / Drop', 'spider.drop'], ['Quick Web Boost', 'spider.quick'], ['Tightrope', 'spider.rope'], ['Slingshot stance', 'spider.slingshot'],
+        ['Attack / Launcher (hold)', 'spider.attack'], ['Web Shooter', 'spider.web'], ['Web Strike', 'spider.strike'], ['Throw', 'spider.throw'], ['Finisher', 'spider.finisher'], ['Heal', 'spider.heal'],
+        ['Interact / Photograph', 'interact'], ['Pause Menu', 'spider.menu'], ['Map', 'spider.map'], ['Photo Mode', 'spider.photo'], ['Controls Help', 'spider.help']]
+        .map(([label, action]) => `<div>${label}</div><div class="k"><span class="sys-key">${sys.ctx.input.hint(action)}</span></div>`).join('')}</div>`;
     else if (cat === 'audio') main.innerHTML = `<div class="sys-h3">Audio</div>
       ${range('masterVolume', 0, 1, 0.01, 'Master Volume', 'Everything')}
       ${range('musicVolume', 0, 1, 0.01, 'Music', 'Ambient score and the swing pulse')}

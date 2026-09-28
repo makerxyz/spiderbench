@@ -1,6 +1,7 @@
 // OWNER: systems engineer. HUD layer for open-world systems: toasts, banners, XP widget, interaction prompt,
 // projected world pins, crime tracker, fade/loading screen. Menus (pause/photo) mount into the same #sys-root.
 import * as THREE from 'three';
+import { offerTouchInteraction } from '@helix/humanoid-character';
 import '../systems.css';
 import { icon, badge } from './icons.js';
 
@@ -81,8 +82,10 @@ export function createUI({ camera, audio }) {
   }
 
   // ---------------------------------------------------------------- prompt
-  let promptKey = '', promptOff = '', promptPos = '', promptArc = null;
+  let promptKey = '', promptOff = '', promptPos = '', promptArc = null, touchPromptLabel = null;
   function prompt(p) {
+    const touchLabel = p?.label ?? null;
+    if (touchLabel !== touchPromptLabel) { touchPromptLabel = touchLabel; offerTouchInteraction(document, 'spiderbench:world', touchLabel); }
     promptArc = promptArc || $('.sys-prompt .arc');
     if (!p) { if (el.prompt._on) { el.prompt._on = false; el.prompt.classList.remove('on'); promptKey = ''; } return; }
     const k = p.label + '|' + (p.sub || '') + '|' + (p.key || 'F');

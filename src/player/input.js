@@ -137,7 +137,7 @@ export function createInput(el, { router = new InputService(), attach = true } =
   return {
     router, keys, mouse, sling, state, poll, press, release, releaseAll, down, edge,
     get onFoot() { return onFoot; },
-    hint(name) { return router.hint(aliases[name] && router.hasAction(aliases[name]) ? aliases[name] : name); },
+    hint(name, device) { return router.hint(aliases[name] && router.hasAction(aliases[name]) ? aliases[name] : name, device); },
     setOnFoot(value) {
       if (onFoot !== value) { mobileInput.resetPage(); }
       onFoot = value;

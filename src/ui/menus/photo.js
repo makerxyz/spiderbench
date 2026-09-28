@@ -25,11 +25,11 @@ export function createPhotoUI(sys) {
     el.querySelectorAll('.ptabs div').forEach(d => d.classList.toggle('on', d.dataset.t === tab));
     if (tab === 'cam') body.innerHTML = row('fov', 'Field of View', 15, 100, 1, F.fov) + row('roll', 'Camera Roll', -45, 45, 1, F.roll)
       + row('focus', 'Focus Distance', 0.5, 80, 0.1, F.focus) + row('aperture', 'Depth of Field', 0, 14, 0.5, F.aperture) + row('exposure', 'Exposure', -2, 2, 0.1, F.exposure)
-      + `<div class="prow"><div class="opts"><div data-tg="hideHero" class="${st.hideHero ? 'on' : ''}">Hide Spidey</div><div data-tg="grid" class="${st.grid ? 'on' : ''}">Grid</div></div></div>`;
+      + `<div class="prow"><div class="opts"><div data-tg="hideHero" class="${st.hideHero ? 'on' : ''}">Hide Avatar</div><div data-tg="grid" class="${st.grid ? 'on' : ''}">Grid</div></div></div>`;
     else if (tab === 'filter') body.innerHTML = `<div class="prow"><div class="opts">${FILTERS.map(f => `<div data-f="${f.id}" class="${st.filter === f.id ? 'on' : ''}">${f.name}</div>`).join('')}</div></div>` + row('exposure', 'Exposure', -2, 2, 0.1, F.exposure);
     else if (tab === 'frame') body.innerHTML = `<div class="prow"><div class="opts">${FRAMES.map(f => `<div data-fr="${f.id}" class="${st.frame === f.id ? 'on' : ''}">${f.name}</div>`).join('')}</div></div>`;
-    else if (tab === 'pose') body.innerHTML = `<div class="prow"><div class="l">Spider-Man Pose</div><div class="opts">${POSES.map(f => `<div data-po="${f.id}" class="${st.pose === f.id ? 'on' : ''}">${f.name}</div>`).join('')}</div></div>
-      <div class="prow"><div class="opts"><div data-tg="hideHero" class="${st.hideHero ? 'on' : ''}">Hide Spidey</div></div></div>`;
+    else if (tab === 'pose') body.innerHTML = `<div class="prow"><div class="l">Avatar Pose</div><div class="opts">${POSES.filter(p => !p.clip || sys.ctx.player.rig.allClips?.some(c => c.name === p.clip)).map(f => `<div data-po="${f.id}" class="${st.pose === f.id ? 'on' : ''}">${f.name}</div>`).join('')}</div></div>
+      <div class="prow"><div class="opts"><div data-tg="hideHero" class="${st.hideHero ? 'on' : ''}">Hide Avatar</div></div></div>`;
     else body.innerHTML = `<div class="prow"><div class="l">Stickers<span>${st.stickers.length} on</span></div><div class="opts">${STICKERS.map(f => `<div data-sk="${f.id}" class="${st.stickers.some(k => k.id === f.id) ? 'on' : ''}">${f.name}</div>`).join('')}</div>
       <div class="sys-p" style="font-size:12px;color:var(--sys-dim);margin-top:10px;line-height:1.5">Drag a sticker to move it · wheel to scale · Q / E to rotate · Del removes it</div></div>`;
     body.querySelectorAll('input.sys-range').forEach(r => {

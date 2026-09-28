@@ -114,6 +114,8 @@ export function initSystems(ctx) {
   let holdT = 0, holdId = null, lastTick = 0;
 
   function interact(dt) {
+    const nativeSeat = ctx.player.mp.seatEvidence().local;
+    if (nativeSeat?.seated || nativeSeat?.wouldBoard) { ui.prompt(null); holdT = 0; holdId = null; return; }
     const router = ctx.input.router;
     const fHeld = router.hasAction('interact') && router.isDown('interact');
     const fPressed = router.hasAction('interact') && router.wasPressed('interact');
@@ -245,7 +247,7 @@ export function initSystems(ctx) {
 
   // first-run onboarding
   if (!save.state.towers.length && save.state.xp === 0 && save.state.level === 1) {
-    setTimeout(() => ui.toast({ title: 'Research Towers', text: 'Activate towers to reveal districts, collectibles and fast travel. Esc / M opens the map.', icon: 'tower', ms: 7000, tutorial: true, valid: () => !save.state.towers.length && !inCombat }), 3500);
+    setTimeout(() => ui.toast({ title: 'Research Towers', text: `Activate towers to reveal districts, collectibles and fast travel. ${matchMedia('(pointer: coarse)').matches ? 'Find Map in More controls.' : 'M opens the map.'}`, icon: 'tower', ms: 7000, tutorial: true, valid: () => !save.state.towers.length && !inCombat }), 3500);
   }
 
   // ---------------------------------------------------------------- combat: keep the screen clear while fighting
