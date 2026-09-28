@@ -15,7 +15,7 @@ async function api(route, init = {}) {
   if (!r.ok) throw new Error(`${init.method ?? 'GET'} ${route}: HTTP ${r.status}`);
   return d?.item ?? d?.items ?? d;
 }
-const evidence = { pageErrors: [], httpErrors: [], logs: [], checkpoints: {} };
+const evidence = { pageErrors: [], httpErrors: [], logs: [], navigations: [], checkpoints: {} };
 const beforePlacements = await api('/api/v1/worlds/spiderbench/spawned-items');
 const beforeIds = new Set(beforePlacements.map(v => v.placementId));
 const slots = await api('/api/v1/universal-items/quick-slots/me');
@@ -38,12 +38,18 @@ if (process.argv.includes('--local')) {
 } else evidence.runtimeSource = 'published CDN build';
 let page = await context.newPage(), frame = null;
 function observe(p) {
-  p.on('framenavigated', f => { if (/instant-worlds/.test(f.url())) console.log('WORLD_FRAME', f.url()); });
+  p.on('framenavigated', f => { if (/instant-worlds/.test(f.url())) { evidence.navigations.push({ at: Date.now(), url: f.url() }); console.log('WORLD_FRAME', f.url()); } });
   p.on('pageerror', e => { evidence.pageErrors.push(e.message); console.log('PAGEERROR', e.message); });
   p.on('response', r => { if (r.status() >= 400) evidence.httpErrors.push({ url: r.url().split('?')[0], status: r.status() }); });
-  p.on('console', m => { if (/warmup|city|systems|\[profile\]/i.test(m.text()) || m.type() === 'error') { evidence.logs.push(m.text()); console.log(m.text()); } });
+  p.on('console', m => { if (/warmup|city|systems|\[profile\]|shared-room|shell-probe/i.test(m.text()) || m.type() === 'error') { evidence.logs.push(m.text()); console.log(m.text()); } });
 }
 observe(page);
+await context.addInitScript(() => {
+  if (window.top !== window) return;
+  addEventListener('message', e => {
+    if (e.data?.type === 'helix:multiplayer-state') console.log('[shell-probe]', JSON.stringify({ at: performance.now(), type: e.data.type, roomId: e.data.state?.roomId ?? null, playerCount: e.data.state?.playerCount ?? null }));
+  });
+});
 await page.goto('https://new.helixgame.com/login', { waitUntil: 'domcontentloaded', timeout: 60000 });
 await page.evaluate(async c => {
   const csrf = await (await fetch('/api/auth/csrf')).json();

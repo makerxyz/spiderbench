@@ -10,9 +10,10 @@ As of September 27, 2026, the active published revision is build 2 (`4b431132-54
 
 - Universal Avatar, native camera/emotes, shared vehicle physics, unified platform input and touch controls are integrated.
 - Asset preparation keeps the city and geometry while reducing the published bundle to about 47.47 MiB.
-- Twenty-six focused tests passed before the latest startup adjustment. Local nested-path browser testing rendered gameplay, animated the avatar, and moved it about 13 metres without audio request failures.
+- Twenty-six focused tests and the production build pass with the latest startup adjustment. Local nested-path browser testing rendered gameplay, animated the avatar, and moved it about 13 metres without audio request failures.
 - Hosted testing confirmed the signed-in Universal Avatar and a joined multiplayer room, but exposed a startup reload: the shell starts a room deadline while the large city is still building.
-- The latest working change creates the native player and requires a managed room before building the city, then attaches city collision/traversal. This startup adjustment and the F6 photo binding still need hosted verification and publication.
+- The latest working change creates the native player and requires a managed room before building the city, then attaches city collision/traversal. Authenticated shell testing with the local build confirms room admission before city generation, the equipped avatar, rendered gameplay, and no input conflicts. These source changes still need publication.
+- The shell still remounts the iframe after clearing its room state during an unrelated effect teardown. The iframe URL and microphone epoch stay unchanged while the parent rejoin epoch increments; a valid room and roster were reported before the watchdog fires. A separate frontend owner is fixing that lifecycle issue on HELIX's integration branch. It is not a world asset-size or avatar-join failure.
 
 ## Remaining acceptance
 
@@ -24,6 +25,6 @@ See README.md for installation, build, tests and browser checks. The generated `
 
 Use the helix3 API and website environment values shown in README.md for CLI operations. The CLI currently times out after 30 seconds on finalize for this bundle even when the server subsequently publishes successfully. Reconcile the live world/build status before retrying; another publish creates another build.
 
-`qa/browser.mjs` tests a nested local URL. `qa/hosted-repl.mjs` uses existing local creator credentials for authentic headless HELIX acceptance. Credentials are never committed. Task evidence is written under ignored `qa/evidence/`.
+`qa/browser.mjs` tests a nested local URL. `qa/hosted-repl.mjs` uses existing local creator credentials for authentic headless HELIX acceptance. Its optional `--local` flag substitutes the local `dist` files inside the real authenticated shell for iteration; final published acceptance runs without that flag. Credentials are never committed. Task evidence is written under ignored `qa/evidence/`.
 
 Another agent may read or branch from the synced source. Coordinate file ownership before writing to this working branch; the active delivery owner is still implementing and testing the startup path.
