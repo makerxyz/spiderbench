@@ -28,6 +28,8 @@ try{
   const controls=page.locator('[data-helix-mobile-controls]');
   assert.equal(await controls.count(),1,'exactly one native controller');
   await controls.waitFor({state:'visible'});
+  await controls.getByRole('button',{name:'Swing',exact:true}).waitFor({state:'visible'});
+  assert.equal(await controls.locator('.hx-context button:visible').count(),0,'gameplay abilities do not spill into the modal row');
   await page.screenshot({path:resolve(evidence,'mobile-portrait.png')});
   const cdp=await context.newCDPSession(page);
   const before=await page.evaluate(()=>({...__ctx.player.body.position}));
@@ -41,6 +43,11 @@ try{
   await controls.getByRole('button',{name:'More controls',exact:true}).tap();
   assert.equal(await controls.locator('.hx-panel').getAttribute('data-open'),'true');
   await page.screenshot({path:resolve(evidence,'mobile-more.png')});
+  for (const name of ['Traversal','Combat','Platform','Back']) {
+    await controls.getByRole('button',{name,exact:true}).tap();
+    const bounds=await controls.locator('.hx-panel button:visible').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom}}));
+    assert.ok(bounds.every(r=>r.left>=0&&r.right<=page.viewportSize().width&&r.top>=0), 'More page fits the viewport');
+  }
   await controls.getByRole('button',{name:'Close controls',exact:true}).tap();
   await page.setViewportSize({width:844,height:390});
   await page.screenshot({path:resolve(evidence,'mobile-landscape.png')});

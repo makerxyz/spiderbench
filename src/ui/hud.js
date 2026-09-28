@@ -34,6 +34,14 @@ function css() {
   .help b{display:inline-block;min-width:96px;color:#ffd35a;font-weight:700}
   .help .t{font-weight:700;font-size:13px;color:#9fb6ea;letter-spacing:.18em;margin-bottom:4px}
   .dbg{position:absolute;left:10px;top:8px;font:12px monospace;color:#cfe;opacity:.55;text-shadow:0 1px 2px #000}
+  @media (pointer:coarse) {
+    .mm-wrap{top:54px;bottom:auto;right:12px;width:130px;min-width:0}
+    .mm{transform:none}
+  }
+  @media (pointer:coarse) and (orientation:portrait) {
+    /* The full map remains in More; keep the thumb zones and mission text clear. */
+    .mm-wrap{display:none}
+  }
   `;
   document.head.appendChild(s);
 }

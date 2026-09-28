@@ -1,6 +1,7 @@
 // One platform router owns keyboard, mouse, gamepad, automation and generated touch controls.
 // CharacterMultiplayer pumps it once per frame. poll() only adapts that snapshot to traversal.
 import { InputService, createMobileControls } from '@helix/humanoid-character';
+import { createMobileInputView } from '../helix/mobile-input.js';
 
 export const SPIDER_ACTIONS = {
   swing: { label: 'Swing', touch: 'hold' },
@@ -50,6 +51,7 @@ export function createInput(el, { router = new InputService(), attach = true } =
   for (const [name, , keys, context, gamepadButtons, label, touch] of MENU_ACTIONS) {
     router.registerAction(`spider.${name}`, { kind: 'button', keys, context, gamepadButtons, label, touch }, 'spiderbench');
   }
+  router.registerAction('spider.mobilePage', { kind: 'button', context: 'gameplay', label: 'Traversal', touch: 'button' }, 'spiderbench');
   if (attach) {
     router.attach(window);
     // Platform mobile controls capture touch gestures before this bubble listener, so desktop
@@ -57,6 +59,7 @@ export function createInput(el, { router = new InputService(), attach = true } =
     router.attachPointer(el, document, { dragLook: true });
   }
   let mobile = null, onFoot = true;
+  const mobileInput = createMobileInputView(router, () => onFoot);
   const aliases = { 'spider.swing': 'secondary', 'spider.attack': 'primary', 'spider.zip': 'reload' };
   const fallbackBindings = {
     'spider.swing': { mouseButtons: [2], gamepadButtons: [6] },
@@ -136,6 +139,7 @@ export function createInput(el, { router = new InputService(), attach = true } =
     get onFoot() { return onFoot; },
     hint(name) { return router.hint(aliases[name] && router.hasAction(aliases[name]) ? aliases[name] : name); },
     setOnFoot(value) {
+      if (onFoot !== value) { mobileInput.resetPage(); }
       onFoot = value;
       const contexts = router.activeContexts();
       if (contexts.every(c => c === 'gameplay' || c === 'spider.onfoot')) {
@@ -154,10 +158,11 @@ export function createInput(el, { router = new InputService(), attach = true } =
       this.setOnFoot(true);
       this.refreshBindings();
       mobile?.destroy();
-      mobile = createMobileControls(router, {
+      mobile = createMobileControls(mobileInput, {
         surface: el,
         actions: [
           { id: 'jump', order: 0 }, { id: 'spider.swing', order: 1, placement: 'primary' }, { id: 'spider.zip', order: 2 },
+          { id: 'spider.mobilePage', order: 99 },
           ...['menu', 'map', 'photo'].map(id => ({ id: `spider.${id}`, placement: 'utility' })),
           { id: 'crouch', visible: false },
         ],
@@ -167,7 +172,10 @@ export function createInput(el, { router = new InputService(), attach = true } =
     },
     updateMobile() { syncBindings(); mobile?.update(); },
     // Call after mp.update(); read-only consumers share exactly that frame's edges.
-    updateUI(dt) { for (const fn of frameHandlers) fn(dt); },
+    updateUI(dt) {
+      if (router.wasPressed('spider.mobilePage')) { mobileInput.nextPage(); mobile?.refresh(); }
+      for (const fn of frameHandlers) fn(dt);
+    },
     onFrame(fn) { frameHandlers.add(fn); return () => frameHandlers.delete(fn); },
     dispose() { mobile?.destroy(); mobile = null; frameHandlers.clear(); router.dispose(); },
   };
