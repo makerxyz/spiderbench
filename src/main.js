@@ -54,6 +54,13 @@ const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 15
 const input = createInput(renderer.domElement);
 await boot.stage('player');
 const player = await createPlayer({ scene, camera, input, renderer });
+// The native quick-slot ring reads its contents through the shell after player creation.
+// Let that reply reach the iframe before city generation blocks the main thread long
+// enough for the bridge's four-second request timer to expire.
+const quickSlotsDeadline = performance.now() + 4500;
+while (!input.router.hasAction('quick-slot.steer') && performance.now() < quickSlotsDeadline) {
+  await new Promise(resolve => setTimeout(resolve, 50));
+}
 const lighting = createLighting({ renderer, scene });
 const world = await buildCity({ scene, renderer });
 player.attachWorld(world);
