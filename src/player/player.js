@@ -14,11 +14,10 @@ import { createTraversal, H } from './traversal/traversal.js';
 
 const read = (bb, key) => { try { return bb.get(key); } catch { return false; } };
 
-export async function createPlayer({ scene, world, camera, input, renderer }) {
-  const spawn = { x: world.spawn.x, y: world.spawn.y + 0.1, z: world.spawn.z };
+export async function createPlayer({ scene, camera, input, renderer, spawn = { x: 250, y: 0.1, z: 167.3 } }) {
+  let world, physics, cam;
   const shared = await SharedPhysicsWorld.create(-9.81, { stepMode: 'fixed', fixedHz: 60 });
   const body = await RapierBody.create({ position: spawn, sharedPhysicsWorld: shared });
-  const physics = installCityPhysics(body, world, { scene });
   const presentation = new PortableVehiclePresentationRuntime({ parent: scene });
   const vehicles = new VehicleScene({ world: shared, parent: scene,
     onComponentVfxFrame: f => presentation.applyComponentVfx(f),
@@ -26,7 +25,6 @@ export async function createPlayer({ scene, world, camera, input, renderer }) {
     supportsComponentVfx: effect => presentation.supportsComponentVfx(effect),
   });
   const web = createWebSystem(scene), slingWebs = createSlingWebs(scene, web), ropeWebs = createRopeWebs(scene);
-  const cam = createChaseCamera(camera, world);
   let rig, trav, mp, override = null, frozen = false, drivingTraversal = false, elapsed = 0, lastModel, cameraSettings = null;
   const desired = new THREE.Vector3(), old = new THREE.Vector3(), hand = new THREE.Vector3();
   const lastBodyPosition = new THREE.Vector3(spawn.x, spawn.y, spawn.z);
@@ -78,6 +76,7 @@ export async function createPlayer({ scene, world, camera, input, renderer }) {
   }
   mp = await CharacterMultiplayer.create({
     helix: Helix, renderer, scene, camera, body, input: input.router, domElement: renderer.domElement,
+    requireMultiplayer: true,
     assetBase: SYSTEM_ASSET_BASE, transcoderPath: TRANSCODER_PATH, spawn,
     character: { character: { spawn, camera: { mode: 'third-person', tp: { distance: 5.5 } }, body: { stepHeight: 0.55, terminalVelocity: 55 } } },
     abilities: clips => [new LocomotionAbility(clips), new TraversalAbility()],
@@ -85,14 +84,21 @@ export async function createPlayer({ scene, world, camera, input, renderer }) {
       transportFor: (binding, room) => new VehicleSpecialtyRoomTransport(room, binding) },
   });
   refreshRig();
-  trav = createTraversal({ world, cam, web, rig, camera });
-  syncFromBody(true);
   if (mp.portableVehicles) presentation.setVehicles(mp.portableVehicles);
   mp.entities({ build: (kind, id) => { const root = new THREE.Group(); root.name = `${kind}:${id}`; return { root, update() {}, dispose() { root.removeFromParent(); } }; } });
   input.mountMobile();
   const api = {
-    get object() { return mp.local.model; }, rig, web, cam, traversal: trav, state: trav.s, anim: trav.anim,
-    mp, body, vehicles, shared, physics,
+    get object() { return mp.local.model; }, rig, web,
+    get cam() { return cam; }, get traversal() { return trav; }, get state() { return trav.s; }, get anim() { return trav.anim; },
+    mp, body, vehicles, shared, get physics() { return physics; },
+    attachWorld(city) {
+      world = city;
+      physics = installCityPhysics(body, world, { scene });
+      cam = createChaseCamera(camera, world);
+      trav = createTraversal({ world, cam, web, rig, camera });
+      syncFromBody(true);
+      window.__trav = trav;
+    },
     get position() { return trav.s.pos; }, get velocity() { return trav.s.vel; }, get heading() { return cam.yaw; },
     get mode() { return drivingTraversal ? trav.s.mode : 'ground'; }, get sub() { return trav.s.sub; },
     get zipTarget() { return trav.targeting.best; }, get zipCandidates() { return trav.targeting.candidates; },
@@ -140,9 +146,8 @@ export async function createPlayer({ scene, world, camera, input, renderer }) {
       input.updateUI(dt);
     },
     ready() { inspector.ready({ scene, body, spawn }); screenshots.ready({ renderer, scene, camera }); },
-    dispose() { input.dispose?.(); physics.dispose(); mp.dispose(); presentation.dispose(); vehicles.dispose?.(); shared.dispose?.(); },
+    dispose() { input.dispose?.(); physics?.dispose(); mp.dispose(); presentation.dispose(); vehicles.dispose?.(); shared.dispose?.(); },
   };
-  window.__trav = trav;
   window.portableVehicleEvidence = () => mp.portableVehicleEvidence();
   screenshots.register('hero', { position: [spawn.x + 10, spawn.y + 7, spawn.z - 13], lookAt: [spawn.x, spawn.y + 3, spawn.z], fov: 58 });
   addEventListener('pagehide', () => api.dispose(), { once: true });

@@ -25,7 +25,7 @@ export const SPIDER_ACTIONS = {
 export const MENU_ACTIONS = [
   ['menu', 'Escape', ['F10'], 'gameplay', [9], 'Pause', 'button'],
   ['map', 'KeyM', ['KeyM'], 'gameplay', [8], 'Map', 'button'],
-  ['photo', 'KeyV', ['KeyV'], 'gameplay', [], 'Photo', 'button'],
+  ['photo', 'KeyV', ['F6'], 'gameplay', [], 'Photo', 'button'],
   ['dev', 'Backquote', ['F8'], 'gameplay', [], 'Developer', 'none'],
   ['menu.close', 'Escape', ['F10', 'Backspace'], 'spider.menu', [9, 1], 'Resume', 'button'],
   ['menu.map', 'KeyM', ['KeyM'], 'spider.menu', [8], 'Map', 'none'],

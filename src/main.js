@@ -5,11 +5,9 @@
 //                      world = {raycast(origin:Vector3, dir:Vector3, max):{point,normal,distance}|null,
 //                               groundHeight(x,z):number, spawn:Vector3, update(dt, camera)}
 //  player/player.js    createPlayer({scene, world, camera, input, renderer}) -> Promise<player>
-//                      player = {update(dt), object:Object3D, applyShot(name)->boolean}
+//                      player = {update(dt), object:Object3D, teleport(position, yaw), ready()}
 //  ui/hud.js           createHud({player, world}) -> {update(dt), setVisible(b)}
-//  shots.js            SHOTS[name] = {time?, apply(ctx)}  deterministic poses for screenshot/critique
 import * as THREE from 'three';
-import { Helix } from '@hypersoniclabs/helix-sdk';
 import { createPipeline } from './render/pipeline.js';
 import { createLighting } from './render/lighting.js';
 import { buildCity } from './world/city.js';
@@ -20,7 +18,6 @@ import { createWarmup } from './render/warmup.js'; // (perf r3)
 import { REFL_LAYER } from './world/water.js';
 import { BIG_CASTER_LAYER } from './render/csm.js';
 
-await Helix.init();
 const params = new URLSearchParams(location.search);
 // Legacy ?shot poses belonged to the retired Spider-Man rig; load the playable world instead.
 if (params.has('shot')) console.info('[world] Legacy shot preset ignored; use HELIX camera.');
@@ -52,11 +49,14 @@ const scene = new THREE.Scene();
 // horizon instead of being clipped into a hard band at 6 km (reversed float depth keeps precision at this range)
 const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 150000);
 
-const lighting = createLighting({ renderer, scene });
-const world = await buildCity({ scene, renderer });
+// Join the native room before heavy city generation: the shell bounds room admission
+// independently of this world's loading overlay. Rendering/physics wait for attachWorld.
 const input = createInput(renderer.domElement);
 await boot.stage('player');
-const player = await createPlayer({ scene, world, camera, input, renderer });
+const player = await createPlayer({ scene, camera, input, renderer });
+const lighting = createLighting({ renderer, scene });
+const world = await buildCity({ scene, renderer });
+player.attachWorld(world);
 await boot.stage('shaders');
 const hud = createHud({ player, world, camera, input });
 const pipeline = createPipeline({ renderer, scene, camera, lighting });
