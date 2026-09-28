@@ -1,0 +1,173 @@
+{
+  "source": "published CDN build 3",
+  "observedAt": "2026-09-28",
+  "navigations": [
+    {
+      "at": 1790605900278,
+      "url": "https://eu.instant-worlds.dev.helix-cdn.com/instant-worlds/39a4718b-37bd-4250-981c-b9b96533f9f7/3/index.html"
+    },
+    {
+      "at": 1790606762209,
+      "url": "https://eu.instant-worlds.dev.helix-cdn.com/instant-worlds/39a4718b-37bd-4250-981c-b9b96533f9f7/3/index.html"
+    },
+    {
+      "at": 1790606805961,
+      "url": "https://eu.instant-worlds.dev.helix-cdn.com/instant-worlds/39a4718b-37bd-4250-981c-b9b96533f9f7/3/index.html"
+    }
+  ],
+  "pageErrors": [],
+  "reconnect524": [
+    {
+      "url": "https://helix3-mp.helixgame.com/matchmake/reconnect/E5tYIfvC2",
+      "status": 524
+    },
+    {
+      "url": "https://helix3-mp.helixgame.com/matchmake/reconnect/E5tYIfvC2",
+      "status": 524
+    }
+  ],
+  "roomTimeline": [
+    "[shell-probe] {\"at\":15018.799999952316,\"type\":\"helix:multiplayer-state\",\"roomId\":\"E5tYIfvC2\",\"playerCount\":0}",
+    "[shell-probe] {\"at\":15127.5,\"type\":\"helix:multiplayer-state\",\"roomId\":\"E5tYIfvC2\",\"playerCount\":1}",
+    "[shell-probe] {\"at\":851190,\"type\":\"helix:multiplayer-state\",\"roomId\":null,\"playerCount\":null}",
+    "[shared-room] no room reported within 12000ms of ready — retrying the join silently in the background (attempt 1/1). No banner is shown to the player.",
+    "[shell-probe] {\"at\":869397.6000000238,\"type\":\"helix:multiplayer-state\",\"roomId\":\"E5tYIfvC2\",\"playerCount\":0}",
+    "[shell-probe] {\"at\":869524.2999999523,\"type\":\"helix:multiplayer-state\",\"roomId\":\"E5tYIfvC2\",\"playerCount\":1}",
+    "[shell-probe] {\"at\":895209.3999999762,\"type\":\"helix:multiplayer-state\",\"roomId\":null,\"playerCount\":null}",
+    "[shared-room] no room reported within 12000ms of ready — retrying the join silently in the background (attempt 1/1). No banner is shown to the player.",
+    "[shell-probe] {\"at\":912192.7999999523,\"type\":\"helix:multiplayer-state\",\"roomId\":\"E5tYIfvC2\",\"playerCount\":0}",
+    "[shell-probe] {\"at\":912310,\"type\":\"helix:multiplayer-state\",\"roomId\":\"E5tYIfvC2\",\"playerCount\":1}",
+    "[shell-probe] {\"at\":942478.2999999523,\"type\":\"helix:multiplayer-state\",\"roomId\":null,\"playerCount\":null}"
+  ],
+  "checkpoints": {
+    "cdnStable": {
+      "from": {
+        "roomId": "E5tYIfvC2",
+        "sessionId": "2iGWHGs4b"
+      },
+      "to": {
+        "roomId": "E5tYIfvC2",
+        "sessionId": "2iGWHGs4b"
+      },
+      "navsBefore": 1,
+      "navsAfter": 1,
+      "frames": 4446,
+      "pageErrors": [],
+      "conflicts": []
+    },
+    "nativeCamera": {
+      "buttons": [
+        "Close helixOS",
+        "Camera"
+      ],
+      "flags": {
+        "camera": true,
+        "device": true
+      }
+    },
+    "nativeCameraCapture": {
+      "text": "×\n7:42\nⱠ\n100,000\nmaker\nTimer\nFilters\nPHOTO\nSettings\n.5\n1x\nselected\n2\n3\n5\nDrag to aim\nPHOTO\nVIDEO\nHORZ\nFLIP\nWorlds\nInventory\nMarketplace\nFriends\nApps\nHomes\nWallet\nCamera\nSettings\nCLICK WORLD TO TAKE CONTROL",
+      "buttons": [
+        "Close helixOS",
+        "Capture photo"
+      ],
+      "errors": []
+    },
+    "cameraClosed": {
+      "flags": {
+        "camera": false,
+        "device": false
+      },
+      "room": {
+        "roomId": "E5tYIfvC2",
+        "sessionId": "2iGWHGs4b"
+      },
+      "navs": 1
+    },
+    "cdnEmote": {
+      "active": true,
+      "room": {
+        "roomId": "E5tYIfvC2",
+        "sessionId": "2iGWHGs4b"
+      },
+      "navs": 1
+    },
+    "cdnVehicleSpawn": {
+      "room": {
+        "roomId": "E5tYIfvC2",
+        "sessionId": "2iGWHGs4b"
+      },
+      "vehicles": [
+        {
+          "id": "uv.c598f262504f4de29c6f5560",
+          "position": {
+            "x": 250,
+            "y": 8.730567202519524e-8,
+            "z": 171.0500030517578
+          },
+          "seats": [
+            {
+              "id": "seat_dside_f",
+              "role": "driver"
+            },
+            {
+              "id": "seat_pside_f",
+              "role": "passenger"
+            },
+            {
+              "id": "seat_dside_r1",
+              "role": "passenger"
+            },
+            {
+              "id": "seat_pside_r1",
+              "role": "passenger"
+            }
+          ]
+        }
+      ],
+      "seat": {
+        "vehicleId": "uv.c598f262504f4de29c6f5560",
+        "seatId": "seat_dside_f",
+        "role": "driver"
+      },
+      "placements": [
+        "c598f262-504f-4de2-9c6f-55608a14f2e5"
+      ],
+      "errors": []
+    },
+    "cdnVehicleDrive": {
+      "before": {
+        "x": 250,
+        "y": 0.5188500881195068,
+        "z": 171.0500030517578
+      },
+      "after": {
+        "x": 250.00001525878906,
+        "y": 0.5169875450138841,
+        "z": 189.44164673285866
+      },
+      "seated": {
+        "driving": true,
+        "bound": true,
+        "drive": {
+          "throttle": 1,
+          "brake": 0,
+          "steer": 0,
+          "handbrake": 0,
+          "measured": true,
+          "gear": 1,
+          "rpm": 6730.50832516999,
+          "forwardSpeed": 15.203625346128812,
+          "wheels": 4,
+          "wheelsGrounded": 4,
+          "hasDrivetrain": true
+        }
+      },
+      "engine": true,
+      "navs": 1
+    },
+    "cleanup": {
+      "remainingTaskPlacements": 0
+    }
+  }
+}

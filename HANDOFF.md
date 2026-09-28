@@ -4,7 +4,7 @@ Working branch: `feat/helix-universal-world`. This branch is kept pushed as impl
 
 Published world: https://new.helixgame.com/play/spiderbench
 
-As of September 27, 2026, the active published revision is build 2 (`4b431132-542e-4fdd-9e7e-01a43dcaa0b4`), 49,774,825 bytes, within the existing 50 MiB limit. Publication is confirmed; full hosted acceptance is still in progress.
+As of September 28, 2026, the active published revision is build 3 (`91c08342-3cca-46ea-95c6-36037b705577`), 49,777,150 bytes, within the existing 50 MiB limit. Source revision `d20b7be` is published. See [QA-2026-09-28.md](QA-2026-09-28.md) for the measured local and CDN paths and the remaining platform stability issue.
 
 ## Current working changes
 
@@ -12,15 +12,16 @@ As of September 27, 2026, the active published revision is build 2 (`4b431132-54
 - Asset preparation keeps the city and geometry while reducing the published bundle to about 47.47 MiB.
 - Twenty-eight focused tests and the production build pass with the latest startup and mobile changes. Local nested-path browser testing rendered gameplay, animated the avatar, and moved it about 13 metres without audio request failures. Authenticated shell testing moved the equipped avatar 11.68 metres with a stable room during that measurement.
 - Hosted testing confirmed the signed-in Universal Avatar and a joined multiplayer room, but exposed a startup reload: the shell starts a room deadline while the large city is still building.
-- The latest working change creates the native player and requires a managed room before building the city, then attaches city collision/traversal. Authenticated shell testing with the local build confirms room admission before city generation, the equipped avatar, rendered gameplay, and no input conflicts. These source changes still need publication.
+- The published source creates the native player and requires a managed room before building the city, then attaches city collision/traversal. Authenticated shell testing confirms room admission before city generation, the equipped avatar, rendered gameplay, and no input conflicts.
 - Fresh authenticated shell testing on September 28 confirmed one stable room through startup and 35 seconds of play, 16 metres of keyboard movement, an active swing, quick-slot vehicle placement and resolution, driver-seat entry, about 68 metres of measured driving, a clear exit, an active emote, and an avatar change restored to the original Base Male. A short wait for the native quick-slot reply before synchronous city construction prevents the initial ring read from timing out; a fresh load showed all eight petals without a synthetic refresh.
-- The still-published build 2 starts city generation before room admission. In authenticated CDN testing it hit the 12-second no-room retry and its iframe detached, then restarted the same build. The separate HELIX shell lifecycle fix was merged to `helix3`; a platform owner is now addressing the broader automatic restart policy. The world source fix must still be published and tested from its CDN bytes.
-- The shell still remounts the iframe after clearing its room state during an unrelated effect teardown. The iframe URL and microphone epoch stay unchanged while the parent rejoin epoch increments; a valid room and roster were reported before the watchdog fires. A separate frontend owner is fixing that lifecycle issue on HELIX's integration branch. It is not a world asset-size or avatar-join failure.
+- The prior build 2 started city generation before room admission. In authenticated CDN testing it hit the 12-second no-room retry and its iframe detached, then restarted the same build. Build 3 reached a joined room before city generation and held one iframe for 35 seconds. Later in the same session the shell cleared its room report and remounted the iframe twice, with `524` reconnect responses. A separate platform owner is addressing that automatic restart policy.
+- A second build 3 session lost room state at about 28 seconds and restarted too. The `524` reconnect responses occur after remount and do not explain the first room loss. Authenticated native Windows Chrome on VRPC remained on the loading screen through 40 seconds and repeatedly navigated the build 3 iframe, without an observed browser crash or WebGL context loss. See the dated QA receipt for precise limits.
+- The original room-loss edge is not yet explained by browser evidence. The shell's missing-room watchdog remounts the iframe after the null report; the matching HELIX frontend owner is removing that automatic restart policy. Later reconnect `524` responses follow remount. A valid room and roster were reported before the longer session lost room state.
 - Mobile emulation passed at 390x844 and 844x390: one native controller, touch movement over eight metres, all four bounded More pages, and a real touch hold activating a research tower. World activities now offer the native Interact button and yield to nearby vehicle seats. The controller's action metadata view keeps gameplay actions out of the native modal row while preserving the actual router's context gating.
 
 ## Remaining acceptance
 
-Verify stable startup from published CDN bytes, representative road and bridge driving, HELIX OS camera capture, and any Windows-specific browser failure with actual Windows evidence. Publish the verified revision, capture a clean world thumbnail, and land the working branch. Physical-phone acceptance has not been performed.
+Verify stable play after the platform restart-policy fix, representative bridge driving, and any Windows-specific browser failure with actual Windows evidence. Capture a clean world thumbnail and land the working branch. Physical-phone acceptance has not been performed.
 
 ## Reproduction and publishing
 

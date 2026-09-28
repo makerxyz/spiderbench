@@ -1,0 +1,26 @@
+{
+  "runId": "spiderbench-win-1790607012291-697545",
+  "startedAt": "2026-09-28T14:50:12.292Z",
+  "host": "VRPC native Windows Chrome via WSL interop",
+  "world": "https://new.helixgame.com/play/spiderbench",
+  "navigationTimes": [
+    "2026-09-28T14:50:16.864Z",
+    "2026-09-28T14:52:05.336Z",
+    "2026-09-28T14:53:17.770Z",
+    "2026-09-28T14:54:32.882Z"
+  ],
+  "firstFrameObserved": false,
+  "loadingScreenStillVisibleAtSeconds": [
+    20,
+    40
+  ],
+  "pageErrors": [],
+  "webglContextLostObserved": false,
+  "http524ReconnectCount": 2,
+  "interpretation": "Failed native Windows first-frame and 45-second stability acceptance; no browser crash or WebGL context loss observed. Reconnect POST 524s followed iframe remount and do not establish the original room-loss cause. This is VRPC, not the user\u2019s Windows PC.",
+  "fullEvidence": "qa/evidence/windows-native-evidence.json",
+  "screenshots": [
+    "qa/evidence/windows-native-boot20.png",
+    "qa/evidence/windows-native-boot40.png"
+  ]
+}
