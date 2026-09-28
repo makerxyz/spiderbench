@@ -22,6 +22,20 @@ const slots = await api('/api/v1/universal-items/quick-slots/me');
 const vehicleSlot = Object.entries(slots.slots).find(([, v]) => v?.kind === 'vehicle' && v.restingAt?.type === 'inventory');
 const browser = await chromium.launch({ headless: true, args: process.platform === 'darwin' ? ['--use-angle=metal', '--enable-gpu'] : ['--enable-gpu'] });
 let context = await browser.newContext({ viewport: { width: 1100, height: 700 } });
+// Iterate against the authentic shell without publishing every diagnostic build.
+// Acceptance of a release must run without --local so it exercises the CDN bytes.
+if (process.argv.includes('--local')) {
+  const root = path.resolve('dist');
+  const mime = { '.js': 'application/javascript', '.json': 'application/json', '.html': 'text/html', '.css': 'text/css', '.webp': 'image/webp', '.ogg': 'audio/ogg', '.ttf': 'font/ttf' };
+  await context.route('https://eu.instant-worlds.dev.helix-cdn.com/instant-worlds/39a4718b-37bd-4250-981c-b9b96533f9f7/**', async route => {
+    const relative = decodeURIComponent(new URL(route.request().url()).pathname).split('/').slice(4).join('/');
+    const file = path.resolve(root, relative);
+    if (!file.startsWith(root + path.sep)) return route.abort();
+    try { await route.fulfill({ status: 200, contentType: mime[path.extname(file)] ?? 'application/octet-stream', body: await readFile(file), headers: { 'access-control-allow-origin': '*' } }); }
+    catch { await route.fulfill({ status: 404, body: 'Local build file missing' }); }
+  });
+  evidence.runtimeSource = 'local dist in authenticated hosted shell';
+} else evidence.runtimeSource = 'published CDN build';
 let page = await context.newPage(), frame = null;
 function observe(p) {
   p.on('framenavigated', f => { if (/instant-worlds/.test(f.url())) console.log('WORLD_FRAME', f.url()); });
