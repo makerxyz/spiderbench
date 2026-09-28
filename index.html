@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Spiderbench</title>
 <link rel="icon" href="data:," />
-<link rel="preload" as="image" href="/assets/loading/01.webp" fetchpriority="high" />
-<link rel="stylesheet" id="sys-fonts" href="/assets/ui/fonts/fonts.css" /><!-- the one fonts.css link (src/ui/fonts.js loadFonts() keeps it single) -->
+<link rel="preload" as="image" href="./assets/loading/01.webp" fetchpriority="high" />
+<link rel="stylesheet" id="sys-fonts" href="./assets/ui/fonts/fonts.css" /><!-- the one fonts.css link (src/ui/fonts.js loadFonts() keeps it single) -->
 <style>
 html,body{margin:0;height:100%;overflow:hidden;background:#000}canvas{display:block}
 /* ---- loading screen (shown before any script runs; driven by window.__boot, see below) ----
@@ -68,12 +68,12 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000}canvas{display:bl
 <div id="boot" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
   <div class="slides" style="--T:36s;--S:6s">
     <!-- in-game stills, no UI, graded by tools/loading_grade.py (captured with tools/loading_shots.mjs) -->
-    <figure style="--i:0;--o:45% 40%"><img src="/assets/loading/01.webp" alt="" decoding="async" /><figcaption>Midtown · Golden hour</figcaption></figure>
-    <figure style="--i:1;--o:48% 45%"><img src="/assets/loading/02.webp" alt="" decoding="async" /><figcaption>Times Square · Night</figcaption></figure>
-    <figure style="--i:2;--o:70% 60%"><img src="/assets/loading/03.webp" alt="" decoding="async" /><figcaption>Brooklyn Bridge · Sunrise</figcaption></figure>
-    <figure style="--i:3;--o:55% 60%"><img src="/assets/loading/04.webp" alt="" decoding="async" /><figcaption>Central Park · Morning</figcaption></figure>
-    <figure style="--i:4;--o:52% 55%"><img src="/assets/loading/05.webp" alt="" decoding="async" /><figcaption>Midtown · Noon</figcaption></figure>
-    <figure style="--i:5;--o:60% 65%"><img src="/assets/loading/06.webp" alt="" decoding="async" /><figcaption>East River · Dusk</figcaption></figure>
+    <figure style="--i:0;--o:45% 40%"><img src="./assets/loading/01.webp" alt="" decoding="async" /><figcaption>Midtown · Golden hour</figcaption></figure>
+    <figure style="--i:1;--o:48% 45%"><img src="./assets/loading/02.webp" alt="" decoding="async" /><figcaption>Times Square · Night</figcaption></figure>
+    <figure style="--i:2;--o:70% 60%"><img src="./assets/loading/03.webp" alt="" decoding="async" /><figcaption>Brooklyn Bridge · Sunrise</figcaption></figure>
+    <figure style="--i:3;--o:55% 60%"><img src="./assets/loading/04.webp" alt="" decoding="async" /><figcaption>Central Park · Morning</figcaption></figure>
+    <figure style="--i:4;--o:52% 55%"><img src="./assets/loading/05.webp" alt="" decoding="async" /><figcaption>Midtown · Noon</figcaption></figure>
+    <figure style="--i:5;--o:60% 65%"><img src="./assets/loading/06.webp" alt="" decoding="async" /><figcaption>East River · Dusk</figcaption></figure>
   </div>
   <div class="grain"></div>
   <div class="ui">

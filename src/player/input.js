@@ -1,4 +1,4 @@
-// OWNER: traversal engineer. Keyboard + mouse (pointer lock) + Gamepad API.
+// OWNER: traversal engineer. Keyboard + mouse (pointer lock) + Gamepad API + touch (mobile).
 // Exposes raw state plus high-level "actions" sampled once per frame via poll().
 //
 // Bindings (Insomniac layout):
@@ -18,11 +18,14 @@
 // state: move {x,y} (x = right, y = forward, -1..1), look {dx,dy} (pixels-equivalent),
 //   swing, sprint, walk (Shift only, keyboard), jump, zip, drop, quick, rope (T) (held) + <name>Pressed / <name>Released edge flags, jumpHeld (seconds),
 //   aimT (seconds since the last deliberate camera move), usingPad.
+import { createTouch } from './touch.js';
+
 // Automation: input.press('KeyW' | 'Space' | 'MouseRight' | 'MouseMiddle' ...), input.release(code), input.releaseAll().
 export function createInput(el) {
   const keys = new Set(); const tapped = new Set(); // tapped: keys pressed since last poll (latched so short taps are never lost)
   const mouse = { dx: 0, dy: 0, buttons: 0 };
   const synthetic = new Set();
+  const touch = createTouch(el); // mobile: virtual joystick + camera drag + action buttons
   const isTyping = e => /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName || '');
   addEventListener('keydown', e => {
     if (isTyping(e)) return;
@@ -73,17 +76,19 @@ export function createInput(el) {
     if (has('KeyS') || has('ArrowDown')) my -= 1;
     if (has('KeyD') || has('ArrowRight')) mx += 1;
     if (has('KeyA') || has('ArrowLeft')) mx -= 1;
+    if (touch.enabled) { mx += touch.state.moveX; my += touch.state.moveY; }
     let lx = mouse.dx, ly = mouse.dy; mouse.dx = mouse.dy = 0;
+    if (touch.enabled) { const tl = touch.consumeLook(); lx += tl.dx; ly += tl.dy; }
     let btn = mouse.buttons | tappedBtn.v; tappedBtn.v = 0;
     for (const [k, b] of Object.entries(BTN)) if (synthetic.has(k)) btn |= b;
-    let swing = !!(btn & 4);
-    let sprint = has('ShiftLeft') || has('ShiftRight');
+    let swing = !!(btn & 4) || touch.held.swing || touch.tapped.has('swing');
+    let sprint = has('ShiftLeft') || has('ShiftRight') || touch.held.walk;
     const walk = false; // user r12 Shift-walk DISABLED (user r-nowalk: "disable walking"): Shift = ground parkour / wall-run again
-    let jump = has('Space');
-    let zip = has('KeyE') || !!(btn & 2);
-    let quick = has('KeyQ');
+    let jump = has('Space') || touch.held.jump || touch.tapped.has('jump');
+    let zip = has('KeyE') || !!(btn & 2) || touch.held.zip || touch.tapped.has('zip');
+    let quick = has('KeyQ') || touch.held.quick || touch.tapped.has('quick');
     const rope = has('KeyT');
-    let drop = has('KeyC') || has('ControlLeft') || has('ControlRight');
+    let drop = has('KeyC') || has('ControlLeft') || has('ControlRight') || touch.held.drop || touch.tapped.has('drop');
     const ctrl = keys.has('ControlLeft') || keys.has('ControlRight') || synthetic.has('ControlLeft') || synthetic.has('ControlRight');
     const slingL = !!(sling.tap & 1), slingR = !!(sling.tap & 4); sling.tap = 0;
     let usingPad = false;
@@ -102,6 +107,7 @@ export function createInput(el) {
       swing ||= rt && !zipCombo; sprint ||= rt && !zipCombo; jump ||= b(0); zip ||= zipCombo || b(3); drop ||= b(1);
     }
     tapped.clear();
+    touch.tapped.clear();
     const len = Math.hypot(mx, my); if (len > 1) { mx /= len; my /= len; }
     Object.assign(state, { move: { x: mx, y: my }, look: { dx: lx, dy: ly }, swing, jump, zip, drop, sprint, walk, quick, rope, usingPad, ctrl, slingL, slingR });
     for (const k of ['swing', 'jump', 'zip', 'drop', 'sprint', 'walk', 'quick', 'rope']) {

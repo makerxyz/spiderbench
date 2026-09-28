@@ -1,0 +1,11 @@
+{
+  "helixVersion": "0.1",
+  "title": "Spiderbench",
+  "slug": "spiderbench",
+  "entry": "index.html",
+  "maxPlayers": 1,
+  "permissions": [],
+  "supportsMobile": true,
+  "requiresAuth": false,
+  "contentRating": "teen"
+}
