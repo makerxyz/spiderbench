@@ -1,0 +1,47 @@
+{
+  "shellRevision": "f900c7f44d683677be48fe6dc1005289a3fac46d",
+  "shellVersionUrl": "https://new.helixgame.com/version.txt",
+  "worldSource": "actual published CDN build 2 through supported play ?src= override",
+  "iframeUrl": "https://eu.instant-worlds.dev.helix-cdn.com/instant-worlds/39a4718b-37bd-4250-981c-b9b96533f9f7/2/index.html",
+  "startAtMs": 1790609223436,
+  "endAtMs": 1790609313442,
+  "durationMs": 90006,
+  "sameIframeNodeAfterDeadline": true,
+  "sameIframeUrlAfterDeadline": true,
+  "worldFrameNavigations": 1,
+  "missingRoomDiagnostic": [
+    "[shared-room] Shared room not reported: The world has not reported a shared room yet. The running world is preserved; reload only when the player requests it."
+  ],
+  "realRoomReports": [
+    {
+      "at": 1790609231061,
+      "frame": "parent",
+      "type": "multiplayer-state",
+      "currentIframe": true,
+      "iframeUrl": "eu.instant-worlds.dev.helix-cdn.com/instant-worlds/39a4718b-37bd-4250-981c-b9b96533f9f7/2/index.html",
+      "roomId": "BZg9hyxhK",
+      "playerCount": 0
+    },
+    {
+      "at": 1790609231483,
+      "frame": "parent",
+      "type": "multiplayer-state",
+      "currentIframe": true,
+      "iframeUrl": "eu.instant-worlds.dev.helix-cdn.com/instant-worlds/39a4718b-37bd-4250-981c-b9b96533f9f7/2/index.html",
+      "roomId": "BZg9hyxhK",
+      "playerCount": 1
+    }
+  ],
+  "lateWorldFrames": 4102,
+  "lateWorldRoom": {
+    "roomId": "BZg9hyxhK",
+    "sessionId": "EU8Qb6_HF"
+  },
+  "bootHiddenAtEnd": true,
+  "websocketCloses": [],
+  "pageErrors": [],
+  "cleanup": {
+    "remainingTaskPlacements": 0
+  },
+  "fullLocalEvidence": "qa/evidence/post911-old-build2.json"
+}

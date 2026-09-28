@@ -1,0 +1,57 @@
+{
+  "shellRevision": "f900c7f44d683677be48fe6dc1005289a3fac46d",
+  "worldSource": "actual published CDN build 3",
+  "worldUrl": "https://new.helixgame.com/play/spiderbench",
+  "initialRoomReportAtMs": 1790609380883,
+  "finalAtMs": 1790609877614,
+  "durationMs": 496731,
+  "worldFrameNavigations": 1,
+  "renderedFramesAtEnd": 21606,
+  "realRoomReports": [
+    {
+      "at": 1790609380883,
+      "frame": "parent",
+      "type": "multiplayer-state",
+      "currentIframe": true,
+      "iframeUrl": "eu.instant-worlds.dev.helix-cdn.com/instant-worlds/39a4718b-37bd-4250-981c-b9b96533f9f7/3/index.html",
+      "roomId": "BZg9hyxhK",
+      "playerCount": 0
+    },
+    {
+      "at": 1790609381015,
+      "frame": "parent",
+      "type": "multiplayer-state",
+      "currentIframe": true,
+      "iframeUrl": "eu.instant-worlds.dev.helix-cdn.com/instant-worlds/39a4718b-37bd-4250-981c-b9b96533f9f7/3/index.html",
+      "roomId": "BZg9hyxhK",
+      "playerCount": 1
+    }
+  ],
+  "realRoomAtEnd": {
+    "roomId": "BZg9hyxhK",
+    "sessionId": "vbSNSuwEB"
+  },
+  "keyboardMovementMeters": 25.10457610525191,
+  "keyboardMovementBefore": {
+    "frames": 4921,
+    "pos": {
+      "x": 250,
+      "y": 0.43083692519721806,
+      "z": 167.3
+    }
+  },
+  "keyboardMovementAfter": {
+    "frames": 5048,
+    "pos": {
+      "x": 250,
+      "y": 0.26959738115110665,
+      "z": 192.40457610525192
+    }
+  },
+  "websocketCloses": [],
+  "pageErrors": [],
+  "cleanup": {
+    "remainingTaskPlacements": 0
+  },
+  "fullLocalEvidence": "qa/evidence/post911-build3-long.json"
+}
