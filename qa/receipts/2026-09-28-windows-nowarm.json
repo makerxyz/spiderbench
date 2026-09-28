@@ -1,0 +1,18 @@
+{
+  "host": "VRPC native Windows Chrome via WSL interop; not user PC",
+  "shellVersion": "Version: 78a9a7a",
+  "sourceOverride": "https://eu.instant-worlds.dev.helix-cdn.com/instant-worlds/39a4718b-37bd-4250-981c-b9b96533f9f7/3/index.html?nowarm",
+  "actualIframeUrl": "https://eu.instant-worlds.dev.helix-cdn.com/instant-worlds/39a4718b-37bd-4250-981c-b9b96533f9f7/3/index.html?nowarm",
+  "worldIframeNavigations": 1,
+  "firstFrameAfterWorldNavigationMs": 98305,
+  "lastObservedFrames": 250,
+  "observedMsAfterFirstFrame": 38686,
+  "approxFramesPerSecondAfterFirstFrame": 6.46,
+  "roomSocketStayedOpen": true,
+  "pageErrors": [],
+  "browserCrashObserved": false,
+  "webglContextLossObserved": false,
+  "liveScreenshot": "qa/receipts/2026-09-28-windows-nowarm-live.webp",
+  "fullLocalEvidence": "qa/evidence/windows-nowarm-2026-09-28/evidence.json",
+  "interpretation": "First frame still took about 98s and frame rate remained about 6.5fps; the shell revision changed between A/B runs, so startup timing difference cannot be attributed to nowarm."
+}
