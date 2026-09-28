@@ -34,7 +34,7 @@ export function initCombat(ctx) {
   ctx.combat = c;
   c.fx = createFx(ctx);
   c.rtime = 0;
-  c.input = createCombatInput(() => c.rtime, () => c.time);
+  c.input = createCombatInput(() => c.rtime, () => c.time, ctx.input);
   c.props = createProps(c);
   c.hud = createHud(c);
   c.spidey = createSpidey(c);

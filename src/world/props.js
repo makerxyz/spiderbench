@@ -1,3 +1,4 @@
+import { loadGeometry } from '../helix/assets.js';
 // OWNER: citylife engineer. Street furniture + rooftop clutter: geometry (procedural low-poly, vertex coloured, part ids) + placement + pools.
 // Local prop frame: +x along the curb, +z toward the roadway, y=0 at the sidewalk surface.
 import * as THREE from 'three';
@@ -646,7 +647,7 @@ function autoLod(geo, n = 2) {
 async function loadPropModels() {
   try {
     const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
-    const gltf = await new GLTFLoader().loadAsync('./assets/city/props.glb');
+    const gltf = await loadGeometry(new GLTFLoader(), './assets/city/props.glb');
     const geos = {};
     gltf.scene.traverse((o) => {
       if (!o.isMesh) return;

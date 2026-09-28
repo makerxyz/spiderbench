@@ -85,7 +85,7 @@ export function createPhotoUI(sys) {
   });
   addEventListener('mouseup', () => { drag = null; });
   catchEl.addEventListener('wheel', e => { e.preventDefault(); if (selSt) { selSt.s = Math.min(3, Math.max(0.3, selSt.s * Math.exp(-e.deltaY * 0.0012))); drawOverlay(); return; } photo.set('fov', Math.max(15, Math.min(100, st.fov + Math.sign(e.deltaY) * 2))); if (tab === 'cam') render(); }, { passive: false });
-  addEventListener('keyup', e => photo.keys.delete(e.code));
+  flow.onKeyUp(e => photo.keys.delete(e.code));
   flow.onKey((e, mode) => {
     if (mode === 'play' && e.code === 'KeyV') { photo.enter(); openUI(); return true; }
     if (mode !== 'photo') return false;

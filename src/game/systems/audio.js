@@ -52,6 +52,7 @@ export function createAudio() {
 
   // ------------------------------------------------------------------ loading (lazy, async, never blocking)
   async function fetchBuf(url, tries = 3) {
+    url = new URL(url.replace(/^\/+/, ''), document.baseURI).href;
     for (let i = 0; i < tries; i++) {
       try { const r = await fetch(url); if (!r.ok) throw new Error(r.status + ' ' + url); return await ac.decodeAudioData(await r.arrayBuffer()); }
       catch (e) { if (i === tries - 1) throw e; await new Promise(r => setTimeout(r, 400 * (i + 1))); }

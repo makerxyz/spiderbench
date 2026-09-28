@@ -53,7 +53,27 @@ export function createWarmup(renderer, scene, camera, { mirrorLayers = null, per
       });
     },
     // queue everything at once (at load, before the first frame: the links overlap the loading screen's first frame)
-    flush() { const ps = perStep, bm = budgetMs; perStep = Infinity; budgetMs = Infinity; inFlight.length = 0; try { api.step(true); } finally { perStep = ps; budgetMs = bm; } },
+    flush() {
+      // compile() scans the target scene's lights. Batch each pass so a city with
+      // thousands of drawables does not traverse the entire scene once per mesh.
+      const groups = [[], [], []];
+      for (let i = 0; i < queue.length; i += 2) groups[queue[i]].push(queue[i + 1]);
+      const programs = renderer.info.programs, before = programs.length;
+      const previousTarget = renderer.getRenderTarget(), shadows = renderer.shadowMap.enabled;
+      renderer.setRenderTarget(rt1);
+      try {
+        if (groups[0].length) renderer.compile(sub(groups[0]), camera, scene);
+        if (groups[1].length) {
+          renderer.shadowMap.enabled = false;
+          renderer.compile(sub(groups[1]), mc, scene);
+          renderer.shadowMap.enabled = shadows;
+        }
+        if (groups[2].length) renderer.compile(sub(groups[2]), fsCam, sub([]));
+        queue = [];
+      } finally { renderer.shadowMap.enabled = shadows; renderer.setRenderTarget(previousTarget); }
+      inFlight = programs.slice(before);
+      queued += programs.length - before;
+    },
     step(force = false) {
       if (!queue.length) return false;
       inFlight = inFlight.filter(p => !(p.isReady?.() ?? true));

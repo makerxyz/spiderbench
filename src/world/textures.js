@@ -68,9 +68,9 @@ function arrayFromImages(images, size, { srgb, aniso }) {
 
 export async function loadCityTextures(renderer) {
   const aniso = Math.min(16, renderer.capabilities.getMaxAnisotropy());
-  const names = ['asphalt_col', 'asphalt_nrm', 'asphalt_macro', 'sidewalk_col', 'sidewalk_nrm', 'walls_col.jpg', 'walls_nrm.webp', 'walls_hao.jpg', 'curb_col.webp', 'asphalt_decals.webp', // (textures r2) nrm: lossless webp (was a 20 MB png); granite curb; (textures r3) road repair decals
+  const names = ['asphalt_col', 'asphalt_nrm', 'asphalt_macro', 'sidewalk_col', 'sidewalk_nrm', 'walls_col.webp', 'walls_nrm.webp', 'walls_hao.webp', 'curb_col.webp', 'asphalt_decals.webp', // (textures r2) nrm: lossless webp (was a 20 MB png); granite curb; (textures r3) road repair decals
     'interiors', 'signs', 'markings', 'leaves', 'grass_col', 'grass_nrm', 'water_nrm', 'noise', 'detail_nrm'];
-  const ims = Object.fromEntries(await Promise.all(names.map(async n => [n.replace(/\..*/, ''), await loadImage(n.includes('.') ? n : n + '.png')])));
+  const ims = Object.fromEntries(await Promise.all(names.map(async n => [n.replace(/\..*/, ''), await loadImage(n.includes('.') ? n : n + '.webp')])));
   const markRects = await (await fetch(BASE + 'markings.json')).json();
   const T = {
     asphaltCol: tex(ims.asphalt_col, { srgb: true, aniso }),

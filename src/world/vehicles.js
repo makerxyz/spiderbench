@@ -1,3 +1,4 @@
+import { loadGeometry } from '../helix/assets.js';
 // OWNER: city agent. Procedural low-poly vehicles (lofted bodies, glass cabins, pillars, wheels, lights) +
 // cheap lane-following traffic with IDM car-following and traffic-light stops. All instanced (1 draw per model).
 // Model frame: +x forward, y up, wheels on y=0.
@@ -187,7 +188,7 @@ export function loadVehicleModels(renderer) {
   _vehLoad = (async () => {
     try {
       const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
-      const gltf = await new GLTFLoader().loadAsync('./assets/city/vehicles.glb');
+      const gltf = await loadGeometry(new GLTFLoader(), './assets/city/vehicles.glb');
       const geos = {};
       gltf.scene.traverse((o) => {
         if (!o.isMesh) return;

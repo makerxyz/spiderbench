@@ -1,3 +1,4 @@
+import { loadGeometry } from '../../helix/assets.js';
 // OWNER: systems engineer. Street-crime actors: thugs + civilians built from public/assets/thug.glb (same skeleton as
 // Spider-Man, so the clips of spiderman.glb play on it directly, see public/assets/SPIDERMAN.md).
 //   const A = createActors(ctx); await A.ready();  const a = A.spawn({ pos, yaw, variant: 'a'|'b'|'c', role: 'thug'|'victim' })
@@ -60,7 +61,7 @@ export function createActors(ctx) {
   function load() {
     if (loading) return loading;
     const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-    loading = loader.loadAsync('./assets/thug.glb').then(g => {
+    loading = loadGeometry(loader, './assets/thug.glb').then(g => {
       gltf = g; clipList();
       g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; o.frustumCulled = false; } });
       return true;

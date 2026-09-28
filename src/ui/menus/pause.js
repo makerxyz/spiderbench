@@ -2,7 +2,7 @@
 // readout, animated page transitions, footer key hints. Pages: Map, Suits, Skills, Collectibles, Photo Mode, Settings.
 import { icon } from './icons.js';
 import { createMapPage } from './map.js';
-import { createSuitsPage } from './suits.js';
+
 import { createSkillsPage } from './skills.js';
 import { createCollectiblesPage } from './collectibles.js';
 import { createSettingsPage } from './settings.js';
@@ -11,7 +11,7 @@ export function createPauseMenu(sys) {
   const { ui, audio, flow, prog, save } = sys;
   const el = document.createElement('div'); el.className = 'sys-menu';
   el.innerHTML = `<div class="veil"></div><div class="scan"></div>
-    <div class="top"><div class="brand">${icon('spider', { color: '#e3262f' })}<span>SPIDER-MAN</span></div>
+    <div class="top"><div class="brand">${icon('spider', { color: '#e3262f' })}<span>SPIDERBENCH</span></div>
       <div class="tabs"><span class="qe"><span class="sys-key">Q</span></span><span class="tl"></span><span class="qe"><span class="sys-key">E</span></span></div>
       <div class="stats"><div class="xpcol"><div class="l"><span class="lv"></span><span class="xn"></span></div><div class="b"><i></i></div></div><div class="sp"></div></div></div>
     <div class="body"></div>
@@ -20,7 +20,7 @@ export function createPauseMenu(sys) {
   const body = el.querySelector('.body'), tabsEl = el.querySelector('.tl'), hintsEl = el.querySelector('.hints'), leftEl = el.querySelector('.foot .left');
 
   const pages = [
-    createMapPage(sys), createSuitsPage(sys), createSkillsPage(sys), createCollectiblesPage(sys),
+    createMapPage(sys), createAvatarPage(), createSkillsPage(sys), createCollectiblesPage(sys),
     { id: 'photo', title: 'Photo Mode', action: () => { close(true); sys.photo.enter(); sys.photoUI.open(); } },
     createSettingsPage(sys),
   ];
@@ -47,7 +47,7 @@ export function createPauseMenu(sys) {
     cur = i; last = i; p.el.classList.add('on'); p.el.classList.remove('from-left');
     tabEls.forEach((t, k) => t.classList.toggle('on', k === i));
     el.classList.toggle('see-through', !!p.seeThrough);
-    hintsEl.innerHTML = (p.hints || []).map(([k, t]) => `<span><span class="sys-key">${k}</span>${t}</span>`).join('') + '<span><span class="sys-key">Esc</span>Resume</span>';
+    hintsEl.innerHTML = (p.hints || []).map(([k, t]) => `<span><span class="sys-key">${k}</span>${t}</span>`).join('') + '<span><span class="sys-key">F10</span>Resume</span>';
     leftEl.textContent = p.footer?.() || '';
     p.show?.();
     if (!silent) audio.sfx.move();
@@ -88,22 +88,15 @@ export function createPauseMenu(sys) {
   const refreshFoot = () => { if (open) { refreshStats(); leftEl.textContent = pages[cur]?.footer?.() || ''; } };
   for (const ev of ['xp:gain', 'skill:unlocked', 'suit:changed', 'waypoint:set', 'collectible:pickup', 'tower:activated', 'settings:changed']) sys.events.on(ev, refreshFoot);
 
-  // gamepad: Start = pause toggle, Select/View = map, LB/RB tabs, B back
-  const padPrev = {};
-  function pollPad() {
-    const pads = navigator.getGamepads ? navigator.getGamepads() : [];
-    for (const pad of pads) {
-      if (!pad || pad.mapping !== 'standard') continue;
-      const edge = i => { const v = !!pad.buttons[i]?.pressed; const was = padPrev[i]; padPrev[i] = v; return v && !was; };
-      const start = edge(9), sel = edge(8), lb = edge(4), rb = edge(5), b = edge(1);
-      if (flow.mode === 'play') { if (start) show(); else if (sel) show('map'); }
-      else if (flow.mode === 'menu') { if (start || (b && pages[cur]?.back?.() !== true)) close(); else if (lb) step(-1); else if (rb) step(1); }
-      break;
-    }
-  }
-
   return {
     el, pages, show, close, get open() { return open; }, get tab() { return pages[cur]?.id; },
-    update(dt) { pollPad(); if (open) pages[cur]?.update?.(dt); },
+    update(dt) { if (open) pages[cur]?.update?.(dt); },
   };
+}
+
+function createAvatarPage() {
+  const el = document.createElement('div');
+  el.className = 'sys-settings';
+  el.innerHTML = '<div class="sys-panel" style="margin:48px;padding:32px"><h2 class="sys-h2">Your Universal Avatar</h2><p class="sys-p">Your equipped HELIX avatar travels with you. Change your avatar and outfit in HELIX OS.</p></div>';
+  return { id: 'avatar', title: 'Avatar', el };
 }

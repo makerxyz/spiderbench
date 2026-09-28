@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "delivery": "compatible",
+  "systems": [
+    {
+      "slug": "humanoid-character",
+      "requestedRange": "^0.3",
+      "installedVersion": "0.3.109",
+      "mode": "compatible",
+      "imports": {
+        "@helix/humanoid-character": "https://helix-backend-api-helix3.up.railway.app/api/v1/instant-packages/humanoid-character/runtime/%5E0.3/index.js"
+      },
+      "lastKnownGood": {
+        "@helix/humanoid-character": "https://eu.instant-packages.dev.helix-cdn.com/packages/d613178d-2c04-409e-a1c3-dd1d51d03011/9ce593a0-3c5e-4a5a-bc8e-b7827678942b/code/index.js"
+      }
+    },
+    {
+      "slug": "engine-core",
+      "requestedRange": "^0.1.2",
+      "installedVersion": "0.1.22",
+      "mode": "compatible",
+      "imports": {
+        "@helix/engine-core/audio": "https://helix-backend-api-helix3.up.railway.app/api/v1/instant-packages/engine-core/runtime/%5E0.1.2/audio/index.js",
+        "@helix/engine-core/audio/testing": "https://helix-backend-api-helix3.up.railway.app/api/v1/instant-packages/engine-core/runtime/%5E0.1.2/audio/testing/index.js",
+        "@helix/engine-core/audio/vehicle": "https://helix-backend-api-helix3.up.railway.app/api/v1/instant-packages/engine-core/runtime/%5E0.1.2/audio/vehicle/index.js",
+        "@helix/engine-core/camera-contract": "https://helix-backend-api-helix3.up.railway.app/api/v1/instant-packages/engine-core/runtime/%5E0.1.2/camera-contract/index.js",
+        "@helix/engine-core/fidelity": "https://helix-backend-api-helix3.up.railway.app/api/v1/instant-packages/engine-core/runtime/%5E0.1.2/fidelity/index.js",
+        "@helix/engine-core/hud": "https://helix-backend-api-helix3.up.railway.app/api/v1/instant-packages/engine-core/runtime/%5E0.1.2/hud/index.js",
+        "@helix/engine-core": "https://helix-backend-api-helix3.up.railway.app/api/v1/instant-packages/engine-core/runtime/%5E0.1.2/index.js",
+        "@helix/engine-core/inspect": "https://helix-backend-api-helix3.up.railway.app/api/v1/instant-packages/engine-core/runtime/%5E0.1.2/inspect/index.js",
+        "@helix/engine-core/screenshot": "https://helix-backend-api-helix3.up.railway.app/api/v1/instant-packages/engine-core/runtime/%5E0.1.2/screenshot/index.js",
+        "@helix/engine-core/weather": "https://helix-backend-api-helix3.up.railway.app/api/v1/instant-packages/engine-core/runtime/%5E0.1.2/weather/index.js",
+        "@helix/engine-core/world-camera": "https://helix-backend-api-helix3.up.railway.app/api/v1/instant-packages/engine-core/runtime/%5E0.1.2/world-camera/index.js"
+      },
+      "lastKnownGood": {
+        "@helix/engine-core/audio": "https://eu.instant-packages.dev.helix-cdn.com/packages/342f47a4-6b7b-4e6f-a7a9-fa86c8e06433/442e3540-1880-4bec-ae54-792333ecc545/code/audio/index.js",
+        "@helix/engine-core/audio/testing": "https://eu.instant-packages.dev.helix-cdn.com/packages/342f47a4-6b7b-4e6f-a7a9-fa86c8e06433/442e3540-1880-4bec-ae54-792333ecc545/code/audio/testing/index.js",
+        "@helix/engine-core/audio/vehicle": "https://eu.instant-packages.dev.helix-cdn.com/packages/342f47a4-6b7b-4e6f-a7a9-fa86c8e06433/442e3540-1880-4bec-ae54-792333ecc545/code/audio/vehicle/index.js",
+        "@helix/engine-core/camera-contract": "https://eu.instant-packages.dev.helix-cdn.com/packages/342f47a4-6b7b-4e6f-a7a9-fa86c8e06433/442e3540-1880-4bec-ae54-792333ecc545/code/camera-contract/index.js",
+        "@helix/engine-core/fidelity": "https://eu.instant-packages.dev.helix-cdn.com/packages/342f47a4-6b7b-4e6f-a7a9-fa86c8e06433/442e3540-1880-4bec-ae54-792333ecc545/code/fidelity/index.js",
+        "@helix/engine-core/hud": "https://eu.instant-packages.dev.helix-cdn.com/packages/342f47a4-6b7b-4e6f-a7a9-fa86c8e06433/442e3540-1880-4bec-ae54-792333ecc545/code/hud/index.js",
+        "@helix/engine-core": "https://eu.instant-packages.dev.helix-cdn.com/packages/342f47a4-6b7b-4e6f-a7a9-fa86c8e06433/442e3540-1880-4bec-ae54-792333ecc545/code/index.js",
+        "@helix/engine-core/inspect": "https://eu.instant-packages.dev.helix-cdn.com/packages/342f47a4-6b7b-4e6f-a7a9-fa86c8e06433/442e3540-1880-4bec-ae54-792333ecc545/code/inspect/index.js",
+        "@helix/engine-core/screenshot": "https://eu.instant-packages.dev.helix-cdn.com/packages/342f47a4-6b7b-4e6f-a7a9-fa86c8e06433/442e3540-1880-4bec-ae54-792333ecc545/code/screenshot/index.js",
+        "@helix/engine-core/weather": "https://eu.instant-packages.dev.helix-cdn.com/packages/342f47a4-6b7b-4e6f-a7a9-fa86c8e06433/442e3540-1880-4bec-ae54-792333ecc545/code/weather/index.js",
+        "@helix/engine-core/world-camera": "https://eu.instant-packages.dev.helix-cdn.com/packages/342f47a4-6b7b-4e6f-a7a9-fa86c8e06433/442e3540-1880-4bec-ae54-792333ecc545/code/world-camera/index.js"
+      }
+    }
+  ],
+  "resolver": {
+    "policy": "active-finalized-compatible-only",
+    "cache": "max-age=60, stale-while-revalidate=60, stale-if-error=86400",
+    "resolverFailure": "http-cache-policy-applies; otherwise launch fails closed"
+  }
+}

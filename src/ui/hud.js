@@ -62,7 +62,7 @@ function toPolys(list) {
   return out;
 }
 
-export function createHud({ player, world, camera }) {
+export function createHud({ player, world, camera, input }) {
   css();
   const root = document.getElementById('hud') || document.body.appendChild(Object.assign(document.createElement('div'), { id: 'hud' }));
   root.innerHTML = `
@@ -83,22 +83,22 @@ export function createHud({ player, world, camera }) {
         <path d="M-19,0 h4 M15,0 h4" stroke="#f5b82e" stroke-width="2"/>
       </g></svg></div>
     <div class="help"><div class="t">CONTROLS</div>
-      <div><b>WASD</b>Move (camera relative)</div><div><b>Mouse</b>Camera (click to capture)</div>
-      <div><b>R-Mouse</b>Hold: web-swing · let go to release · press again to chain · on ground / wall: hop off into a swing · during a zip: cancel into a swing</div><div><b>Shift</b>On ground: parkour run · on walls: wall-run</div>
-      <div><b>Space</b>Jump (hold = charged high jump) · in a swing: release + launch · double-tap in air: flip · at zip arrival: launch off the point · wall jump · point-launch from perch</div>
-      <div><b>E / M-Mouse</b>Web-zip to <span style="color:#fff">&#9711;</span> point &amp; perch · air web-dash</div>
-      <div><b>T</b>While perched: web tightrope to the <span style="color:#fff">&#9711;</span> point · W / S walk the line · A / D sway · Space jump off</div><div><b>E on wall</b>Wall zip upward</div><div><b>Q</b>Quick web boost (in air)</div><div><b>W</b>Hold while falling: head-first dive</div><div><b>Ctrl+Mouse</b>On ground, Ctrl + Left / Right Mouse: web slingshot</div>
-      <div><b>C / Ctrl</b>Dive (hold in air) · drop off wall / perch</div><div><b>H</b>Toggle this help</div></div>
+      <div><b data-action="move">WASD</b>Move (camera relative)</div><div><b data-action="look">Mouse</b>Camera (click to capture)</div>
+      <div><b data-action="spider.swing">R-Mouse</b>Hold: web-swing · let go to release · press again to chain · on ground / wall: hop off into a swing · during a zip: cancel into a swing</div><div><b data-action="sprint">Shift</b>On ground: parkour run · on walls: wall-run</div>
+      <div><b data-action="jump">Space</b>Jump (hold = charged high jump) · in a swing: release + launch · double-tap in air: flip · at zip arrival: launch off the point · wall jump · point-launch from perch</div>
+      <div><b data-action="spider.zip">R / M-Mouse</b>Web-zip to <span style="color:#fff">&#9711;</span> point &amp; perch · air web-dash</div>
+      <div><b data-action="spider.rope">Y</b>While perched: web tightrope to the <span style="color:#fff">&#9711;</span> point · W / S walk the line · A / D sway · Space jump off</div><div><b data-action="spider.zip">R on wall</b>Wall zip upward</div><div><b data-action="spider.quick">J</b>Quick web boost (in air)</div><div><b>W</b>Hold while falling: head-first dive</div><div><b>Ctrl+Mouse</b>On ground, Ctrl + Left / Right Mouse: web slingshot</div>
+      <div><b data-action="spider.drop">C</b>Dive (hold in air) · drop off wall / perch</div><div><b data-action="spider.help">H</b>Toggle this help</div></div>
     <div class="dbg"></div>`;
   const compassC = root.querySelector('.mm-compass canvas'), mapC = root.querySelector('.mm-map canvas');
   const help = root.querySelector('.help'), ind = root.querySelector('.obj-ind'), chev = root.querySelector('.chev'), dbg = root.querySelector('.dbg');
   const debug = new URLSearchParams(location.search).has('debug');
   const shotMode = new URLSearchParams(location.search).has('shot');
   const reticle = shotMode ? null : createReticle(root);
-  let helpT = 0, helpOn = !new URLSearchParams(location.search).get('shot');
+  let helpT = 0, helpOn = !matchMedia('(pointer: coarse)').matches && !new URLSearchParams(location.search).get('shot');
   // help: shown for the first 30 s of play, then collapsed; H toggles it (a manual show stays until H again)
   let helpManual = false;
-  addEventListener('keydown', e => { if (e.code === 'KeyH') { helpOn = !helpOn; helpT = 0; helpManual = helpOn; } });
+  input?.onFrame(() => { if (input.router.wasPressed('spider.help')) { helpOn = !helpOn; helpT = 0; helpManual = helpOn; } });
 
   // ---------------- offscreen map
   let off = null, offCtx = null, ox = 0, oz = 0, OW = 0, OH = 0, sampling = null;
@@ -263,7 +263,8 @@ export function createHud({ player, world, camera }) {
       t += dt; tryFeatures(); sampleSome(off && sampling ? 700 : 0);
       reticle?.update(dt, camera, { candidates: player.zipCandidates || [], best: player.zipTarget, aiming: !!player.aiming, visible });
       if (!visible) return;
-      helpT += dt; help.style.opacity = helpOn && (helpManual || helpT < 30) ? 1 : 0;
+      helpT += dt; help.style.opacity = helpOn && input?.router.activeDevice() !== 'touch' && (helpManual || helpT < 30) ? 1 : 0;
+      if (input) for (const label of help.querySelectorAll('[data-action]')) { const id = label.dataset.action; if (input.router.hasAction(id)) { const hint = input.hint(id); if (label.textContent !== hint) label.textContent = hint; } }
       const cd = camera.getWorldDirection(_hd); const heading = Math.atan2(cd.x, cd.z);
       drawCompass(heading); drawIndicator();
       mmT += dt; if (mmT >= 1 / 30) { mmT = 0; drawMap(heading); mmFrame++; } // minimap at 30 Hz (systems overlay follows mmFrame)

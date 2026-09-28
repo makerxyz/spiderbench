@@ -5,7 +5,7 @@ const KEY = 'spiderbench.save.v1';
 const OLD_KEYS = ['spidey.save.v1']; // saves from before the project was renamed (Spidey -> Spiderbench) are carried over once
 
 export const DEFAULT_SETTINGS = {
-  quality: 'high', renderScale: 1, mouseSensitivity: 1, invertY: false,
+  quality: 'low', renderScale: 1, mouseSensitivity: 1, invertY: false,
   masterVolume: 0.8, musicVolume: 0.6, sfxVolume: 0.9, ambienceVolume: 0.75, uiVolume: 0.7, // (audio r1) musicVolume
   showPins: true, minimalHud: false, subtitles: true, fovOffset: 0, motionBlur: 1, dof: 1, hudScale: 1, subtitleSize: 1,
   timeOfDay: 'day', // (lighting2 r3) fixed preset: day | morning | sunrise | sunset | dusk | night | overcast

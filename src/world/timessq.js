@@ -1790,7 +1790,7 @@ export function buildTimesSquare({ scene, gen }) {
     if (tm) tm.onBeforeRender = () => { tt.offset.x = (performance.now() * 0.00004) % 1; };
   }
   { // screen light spill (additive, no depth write)
-    const st = loadTex(TEX + 'ts_spill.png', { aniso: 1 });
+    const st = loadTex(TEX + 'ts_spill.webp', { aniso: 1 });
     // custom additive blend that leaves the target's alpha alone (scene alpha > 1 is the pipeline's SSR weight)
     const sm2 = new THREE.MeshBasicMaterial({ map: st, vertexColors: true, transparent: true, depthWrite: false,
       side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
@@ -1874,7 +1874,7 @@ export function buildTimesSquare({ scene, gen }) {
   const pavN = loadTex(TEX + 'ts_pavers_n.webp', { srgb: false, repeat: true, aniso: 16 }), pavR = loadTex(TEX + 'ts_pavers_r.webp', { srgb: false, repeat: true, aniso: 8 });
   const pm = new THREE.MeshStandardMaterial({ map: paveTex, normalMap: pavN, normalScale: new THREE.Vector2(0.9, 0.9), roughnessMap: pavR, roughness: 1, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   // macro variation: large soft blotches (wear / grime / cleaning patterns) so the 9.6 m paver tile never reads as a repeat
-  const noiseTex = loadTex(TEX + 'noise.png', { srgb: false, repeat: true, aniso: 1 });
+  const noiseTex = loadTex(TEX + 'noise.webp', { srgb: false, repeat: true, aniso: 1 });
   // (r7) painted plaza graphics: big worn blue / teal / grey discs painted over the pavers (the real plaza's circles).
   // Drawn in the paver shader, so the grout, stains and cavity darkening show through the paint (not a sticker decal)
   const circ = [];

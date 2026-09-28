@@ -1,4 +1,4 @@
-// OWNER: render agent. Quality presets selected with ?q=low|med|high (default high).
+// OWNER: render agent. Quality presets selected with ?q=low|med|high (default low; higher presets remain selectable).
 const PRESETS = {
   low: {
     name: 'low',
@@ -33,7 +33,7 @@ const PRESETS = {
 let _q = null;
 export function getQuality() {
   if (_q) return _q;
-  let name = 'high';
+  let name = 'low';
   try {
     const p = new URLSearchParams(location.search).get('q');
     if (p && PRESETS[p]) name = p;

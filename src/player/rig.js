@@ -271,6 +271,14 @@ export async function loadCharacter(renderer) {
   return rig;
 }
 
+// Reuse traversal poses on the actual platform avatar. The chassis keeps ownership of
+// loading, avatar swaps, animation, sockets, scale and materials.
+export function createUniversalRig(model) {
+  const rig = new Rig(model, model, resolveBones(model), [], 'universal');
+  rig.animator = false;
+  return rig;
+}
+
 function clipIndex(clips) {
   const want = {
     idle: /^idle|stand/i, run: /^run|sprint|jog/i, walk: /walk/i, jump: /^jump/i, fall: /fall|air(?!trick)|airborne/i, land: /land/i,

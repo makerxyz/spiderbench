@@ -10,11 +10,11 @@ export function createSettingsPage(sys) {
   let cat = 'graphics';
   const S = () => save.state.settings;
   const main = el.querySelector('.main');
-  const curQ = new URLSearchParams(location.search).get('q') || 'high';
+  const curQ = new URLSearchParams(location.search).get('q') || 'low';
 
   const seg = (key, opts, label, sub) => `<div class="sys-opt"><label>${label}<small>${sub}</small></label><div class="sys-seg" data-k="${key}">${opts.map(([v, n]) => `<button data-v="${v}" class="${String(S()[key]) === String(v) ? 'on' : ''}">${n}</button>`).join('')}</div></div>`;
   const range = (key, min, max, step, label, sub, fmt = v => Math.round(v * 100) + '%') => `<div class="sys-opt"><label>${label}<small>${sub}</small></label><input type="range" class="sys-range" data-k="${key}" min="${min}" max="${max}" step="${step}" value="${S()[key]}"><span class="val" data-v="${key}">${fmt(+S()[key])}</span></div>`;
-  const FMT = { mouseSensitivity: v => v.toFixed(2) + '×', renderScale: v => Math.round(v * 100) + '%', fovOffset: v => Math.round(58 + v) + '°', hudScale: v => Math.round(v * 100) + '%', subtitleSize: v => Math.round(v * 100) + '%' };
+  const FMT = { mouseSensitivity: v => v.toFixed(2) + '×', renderScale: v => Math.round(v * 100) + '%', fovOffset: v => Math.round(55 + v) + '°', hudScale: v => Math.round(v * 100) + '%', subtitleSize: v => Math.round(v * 100) + '%' };
 
   function render() {
     el.querySelectorAll('.cats .sys-list-item').forEach(n => n.classList.toggle('on', n.dataset.c === cat));
@@ -25,7 +25,7 @@ export function createSettingsPage(sys) {
       ${seg('daySun', [['a', 'Midday'], ['b', 'Late Morning'], ['c', 'Afternoon']], 'Day Sun', 'Sun direction for the Day preset (shadow angle)')}
       ${seg('puddles', [['true', 'On'], ['false', 'Off']], 'Puddles', 'Water and wet patches on the ground in dry weather (rain always wets the streets)')}`; // (lighting2 r3) fixed presets (no cycle)
     else if (cat === 'camera') main.innerHTML = `<div class="sys-h3">Camera</div>
-      ${range('fovOffset', -10, 20, 1, 'Field of View', 'Base chase-camera FOV (speed widens it further)', FMT.fovOffset)}
+      ${range('fovOffset', -10, 20, 1, 'Field of View', 'Base camera field of view', FMT.fovOffset)}
       ${seg('motionBlur', [['0', 'Off'], ['0.5', 'Low'], ['1', 'Medium'], ['1.6', 'High'], ['2.4', 'Very High']], 'Motion Blur', 'Speed blur, stronger the faster you move')}
       ${seg('dof', [['0', 'Off'], ['1', 'On']], 'Depth of Field', 'Cinematic focus blur in menus and cutscenes (Photo Mode always has its own control)')}`;
     else if (cat === 'interface') main.innerHTML = `<div class="sys-h3">Interface</div>

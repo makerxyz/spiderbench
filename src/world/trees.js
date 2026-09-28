@@ -125,7 +125,7 @@ function leafTextures() {
   if (LEAF_TEX) return LEAF_TEX;
   const ld = new THREE.TextureLoader();
   const mk = (f) => { const t = ld.load('./assets/city/props/' + f); t.anisotropy = 4; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.NoColorSpace; return t; };
-  LEAF_TEX = { col: mk('leaves_col.png'), nrm: mk('leaves_nrm.png') };
+  LEAF_TEX = { col: mk('leaves_col.webp'), nrm: mk('leaves_nrm.webp') };
   return LEAF_TEX;
 }
 

@@ -9,19 +9,21 @@
 //  ui/hud.js           createHud({player, world}) -> {update(dt), setVisible(b)}
 //  shots.js            SHOTS[name] = {time?, apply(ctx)}  deterministic poses for screenshot/critique
 import * as THREE from 'three';
+import { Helix } from '@hypersoniclabs/helix-sdk';
 import { createPipeline } from './render/pipeline.js';
 import { createLighting } from './render/lighting.js';
 import { buildCity } from './world/city.js';
 import { createPlayer } from './player/player.js';
 import { createInput } from './player/input.js';
 import { createHud } from './ui/hud.js';
-import { SHOTS } from './shots.js';
 import { createWarmup } from './render/warmup.js'; // (perf r3)
 import { REFL_LAYER } from './world/water.js';
 import { BIG_CASTER_LAYER } from './render/csm.js';
 
+await Helix.init();
 const params = new URLSearchParams(location.search);
-const shotName = params.get('shot');
+// Legacy ?shot poses belonged to the retired Spider-Man rig; load the playable world instead.
+if (params.has('shot')) console.info('[world] Legacy shot preset ignored; use HELIX camera.');
 // loading screen (index.html): stage labels + progress; it fades out once the first frames and the game systems are up
 const boot = window.__boot || { stage: async () => {}, sub() {}, done() {} };
 
@@ -43,6 +45,7 @@ if (renderer.capabilities.reversedDepthBuffer && !params.has('nozfix')) {
   };
 }
 document.body.appendChild(renderer.domElement);
+if (params.has('profile')) { const gl = renderer.getContext(), debug = gl.getExtension('WEBGL_debug_renderer_info'); console.info('[profile] GPU', debug && gl.getParameter(debug.UNMASKED_RENDERER_WEBGL)); }
 
 const scene = new THREE.Scene();
 // far plane 150 km (foundation agent): the harbour, far shores and distant hinterland run out to the (fogged) true
@@ -55,7 +58,7 @@ const input = createInput(renderer.domElement);
 await boot.stage('player');
 const player = await createPlayer({ scene, world, camera, input, renderer });
 await boot.stage('shaders');
-const hud = createHud({ player, world, camera });
+const hud = createHud({ player, world, camera, input });
 const pipeline = createPipeline({ renderer, scene, camera, lighting });
 
 addEventListener('resize', () => {
@@ -70,41 +73,29 @@ window.__ctx = ctx;
 // post passes) before the first frame: they link in parallel on the driver's threads during the loading frame instead
 // of one by one later, each freezing the game for 0.2-6 s the first time its material came into view
 // (render/warmup.js). ?nowarm = old behaviour (A/B)
-const warmup = !shotName && !params.has('nowarm') ? createWarmup(renderer, scene, camera, { mirrorLayers: [REFL_LAYER, BIG_CASTER_LAYER] }) : null;
+const warmup = !params.has('nowarm') ? createWarmup(renderer, scene, camera, { mirrorLayers: [REFL_LAYER, BIG_CASTER_LAYER] }) : null;
 // first the state the first frame would set that is part of the program keys: the sky IBL (scene.environment, from the
 // first lighting update) and the pipeline's NO_SSR material defines
 if (warmup) { lighting.update(camera); pipeline.prepareMaterials?.(); warmup.rescan(); warmup.flush(); await warmup.settle(k => boot.sub(k)); }
 await boot.stage('frame');
 let framesDrawn = 0;
-const systemsReady = shotName ? Promise.resolve() : import('./game/systems/index.js').then(m => m.initSystems(ctx)).catch(e => console.error('[systems] init failed', e)) // open-world systems (C5)
+const systemsReady = import('./game/systems/index.js').then(m => m.initSystems(ctx)).catch(e => console.error('[systems] init failed', e)) // open-world systems (C5)
   .then(() => import('./game/combat/index.js')).then(m => m.initCombat(ctx)).catch(e => console.error('[combat] init failed', e)) // combat (C5)
   .then(() => warmup?.rescan()); // (perf r3) + the meshes the systems / combat added (trickled by warmup.step)
 // the loading screen goes once the game systems (HUD, save position) are in and a few frames have been drawn
-systemsReady.then(async () => { boot.sub(0.8); while (framesDrawn < 4) await new Promise(r => requestAnimationFrame(r)); boot.done(); });
+systemsReady.then(async () => { boot.sub(0.8); while (framesDrawn < 4) await new Promise(r => requestAnimationFrame(r)); player.ready(); boot.done(); });
 ctx.timeScale = 1; // global game-time scale (combat hit-stop / slow-mo); ctx.realDt = unscaled frame time
 
-if (shotName) {
-  const shot = SHOTS[shotName];
-  if (!shot) throw new Error('unknown shot ' + shotName);
-  shot.apply(ctx);
-  // Warm up: let shadows, TAA/accumulation, streaming settle.
-  const dt = 1 / 60;
-  for (let i = 0; i < (shot.frames ?? 90); i++) {
-    shot.tick?.(ctx, dt, i);
-    world.update(dt, camera); lighting.update(camera); hud.update(dt);
-    pipeline.render(dt);
-    await new Promise(r => requestAnimationFrame(r));
-  }
-  window.__shotInfo = `${renderer.info.render.calls} calls, ${renderer.info.render.triangles} tris`;
-  window.__shotReady = true;
-} else {
+{
   const clock = new THREE.Clock();
   function frame(realDt) {
     ctx.realDt = realDt;
     const dt = ctx.realDt * (ctx.timeScale ?? 1);
-    player.update(dt); world.update(dt, camera); lighting.update(camera); hud.update(dt);
-    for (const s of ctx.systems) s.update?.(dt);
-    pipeline.render(dt);
+    const measured = (name, run) => { if (!params.has('profile') || framesDrawn > 3) return run(); const t = performance.now(); console.info('[profile] start', framesDrawn, name); const result = run(); console.info('[profile] end', framesDrawn, name, performance.now() - t); return result; };
+    measured('player', () => player.update(dt)); measured('world', () => world.update(dt, camera)); measured('lighting', () => lighting.update(camera)); hud.update(dt);
+    measured('systems', () => { for (const s of ctx.systems) s.update?.(dt); });
+    measured('render', () => pipeline.render(dt));
+    ctx.framesDrawn = framesDrawn + 1;
     warmup?.step(); // (perf r3)
     if (++framesDrawn === 1) boot.sub(0.4); // the first frame (remaining uploads / links) is in
   }

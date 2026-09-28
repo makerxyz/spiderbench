@@ -1,3 +1,4 @@
+import { fetchGeometry } from '../../helix/assets.js';
 // OWNER: citylife engineer. Pedestrian crowd: Blender-modelled people (tools/blender/city_npc.py ->
 // public/assets/city/npc/people.{json,bin}) rendered as instanced meshes with GPU skinning from a baked animation
 // texture (18 bones, 14 clips, per-instance clip cross-fades + head look-at), 3 LODs, per-instance outfit colours.
@@ -684,7 +685,7 @@ function createBlobs(scene, animTex, meta) {
 export async function createCrowd({ scene, blocks, parkPaths, props, roads, phase }) {
   const [meta, bin, pedTex, bakeTex] = await Promise.all([
     fetch('./assets/city/npc/people.json').then(r => r.json()),
-    fetch('./assets/city/npc/people.bin').then(r => r.arrayBuffer()),
+    fetchGeometry('./assets/city/npc/people.bin'),
     new THREE.TextureLoader().loadAsync('./assets/city/tex/peds_atlas.webp').catch(() => null), // (peds r1) faces / hair / fabric
     new THREE.TextureLoader().loadAsync('./assets/city/npc/people_bake.webp').catch(() => null), // (peds r2) Cycles cloth normal + AO
   ]);

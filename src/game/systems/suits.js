@@ -306,6 +306,8 @@ if (uSuitOn > 0.5) totalEmissiveRadiance += uSuitER * sysW.x + uSuitEB * sysW.y 
   }
 
   function apply(id) {
+    // An equipped Universal Avatar is owned by HELIX; never recolor its materials.
+    if (ctx.player.rig.source === 'universal') { current = 'advanced'; return SUITS[0]; }
     const S = SUITS.find(s => s.id === id) || SUITS[0]; current = S.id;
     find();
     uniforms.uSuitOn.value = S.strength ? 1 : 0;

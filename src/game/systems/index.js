@@ -32,7 +32,7 @@ export function initSystems(ctx) {
   const t0 = performance.now();
   const save = createSave();
   // saved graphics preset (quality is chosen from the URL at boot by render/quality.js)
-  if (save.persistent && !q.has('q') && save.state.settings.quality && save.state.settings.quality !== 'high') {
+  if (save.persistent && !q.has('q') && save.state.settings.quality && save.state.settings.quality !== 'low') {
     const u = new URL(location.href); u.searchParams.set('q', save.state.settings.quality); location.replace(u.toString()); return null;
   }
   ctx.events = events;
@@ -81,6 +81,7 @@ export function initSystems(ctx) {
   sys.applySettings = () => {
     const s = save.state.settings;
     audio.setVolumes(s);
+    ctx.player.configureCamera?.(s);
     { const t = s.timeOfDay === 'cycle' || !s.timeOfDay ? 'day' : s.timeOfDay; ctx.lighting?.setTimeMode?.(t === 'day' ? ({ b: 'dayB', c: 'dayC' }[s.daySun] ?? 'day') : t); } // (user r-daysun) Day Sun variant // (lighting2 r3) fixed preset (old saves: 'cycle' -> day)
     ctx.lighting?.setDryPuddles?.(s.puddles !== false); // (user r-nopuddles)
     if (s.renderScale !== appliedScale) {
@@ -106,33 +107,34 @@ export function initSystems(ctx) {
   on('level:up', e => {
     const n = e.gained || 1;
     ui.banner('LEVEL UP', `LEVEL ${e.level}`, `+${n} Skill Point${n > 1 ? 's' : ''} — open the pause menu to spend ${n > 1 ? 'them' : 'it'}`, 'levelUp');
-    for (const s of SUITS) if (s.level > (e.from ?? e.level - 1) && s.level <= e.level) ui.toast({ title: 'Suit Unlocked', text: s.name, icon: 'xp', tone: 'gold' });
+    for (const s of SUITS) if (!ctx.player.mp && s.level > (e.from ?? e.level - 1) && s.level <= e.level) ui.toast({ title: 'Suit Unlocked', text: s.name, icon: 'xp', tone: 'gold' });
   });
 
-  // ---------------------------------------------------------------- interaction ([F])
-  let fHeld = false, fPressed = false, holdT = 0, holdId = null, lastTick = 0;
-  flow.onKey((e, mode) => { if (mode === 'play' && e.code === 'KeyF' && !e.repeat) { fHeld = true; fPressed = true; } return false; });
-  addEventListener('keyup', e => { if (e.code === 'KeyF') fHeld = false; });
-  addEventListener('blur', () => { fHeld = false; });
+  // ---------------------------------------------------------------- interaction (native interact action)
+  let holdT = 0, holdId = null, lastTick = 0;
+
   function interact(dt) {
+    const router = ctx.input.router;
+    const fHeld = router.hasAction('interact') && router.isDown('interact');
+    const fPressed = router.hasAction('interact') && router.wasPressed('interact');
+    const key = router.hasAction('interact') ? router.hint('interact') : 'E';
     const p = ctx.player.position;
     const cands = [sys.towers.interact(p), sys.collect.interact(p, ctx.camera), sys.crimes.interact(p)].filter(Boolean);
     cands.sort((a, b) => b.priority - a.priority);
     const c = cands[0];
-    if (!c) { ui.prompt(null); holdT = 0; holdId = null; fPressed = false; return; }
+    if (!c) { ui.prompt(null); holdT = 0; holdId = null; return; }
     if (c.id !== holdId) { holdId = c.id; holdT = 0; }
     if (!c.hold) {
-      ui.prompt({ label: c.label, sub: c.sub, progress: 0, pos: c.pos });
+      ui.prompt({ label: c.label, sub: c.sub, progress: 0, key, pos: c.pos });
       if (fPressed) { c.action(); ui.prompt(null); }
     } else {
       if (fHeld) {
         holdT += dt; const k = Math.min(1, holdT / c.hold);
         if (c.tick && performance.now() - lastTick > 90) { lastTick = performance.now(); c.tick(k); }
-        if (k >= 1) { holdT = 0; fHeld = false; c.action(); ui.prompt(null); fPressed = false; return; }
+        if (k >= 1) { holdT = 0; c.action(); ui.prompt(null); return; }
       } else holdT = Math.max(0, holdT - dt * 2);
-      ui.prompt({ label: c.label, sub: c.sub, progress: holdT / c.hold, key: 'F', pos: c.pos });
+      ui.prompt({ label: c.label, sub: c.sub, progress: holdT / c.hold, key, pos: c.pos });
     }
-    fPressed = false;
   }
 
   // ---------------------------------------------------------------- traversal-derived events (audio, tricks)
@@ -268,7 +270,7 @@ export function initSystems(ctx) {
       sys.suits.update(dt);
       // FOV setting: the chase camera rewrites camera.fov every frame; add the user's offset on top while playing
       const fo = save.state.settings.fovOffset || 0;
-      if (fo && playing) { ctx.camera.fov += fo; ctx.camera.updateProjectionMatrix(); }
+      if (fo && playing && !ctx.player.mp) { ctx.camera.fov += fo; ctx.camera.updateProjectionMatrix(); }
       markers.update(dt, ctx.camera);
       sys.pause.update(dt);
       sys.photoUI.update(dt);

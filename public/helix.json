@@ -1,11 +1,90 @@
 {
-  "helixVersion": "0.1",
+  "helixVersion": "0.3",
   "title": "Spiderbench",
   "slug": "spiderbench",
   "entry": "index.html",
-  "maxPlayers": 1,
-  "permissions": [],
+  "maxPlayers": 8,
+  "permissions": [
+    "auth.profile",
+    "multiplayer"
+  ],
   "supportsMobile": true,
   "requiresAuth": false,
-  "contentRating": "teen"
+  "contentRating": "teen",
+  "systems": {
+    "humanoid-character": "^0.3",
+    "engine-core": "^0.1.2"
+  },
+  "multiplayer": {
+    "authoritative": true,
+    "state": {
+      "playerVars": {}
+    },
+    "entities": {},
+    "universalVehicles": {
+      "enabled": true
+    },
+    "uploadHz": 20,
+    "actions": {
+      "travel": {
+        "args": {
+          "destination": {
+            "type": "vec3"
+          }
+        }
+      }
+    },
+    "rules": [
+      {
+        "when": {
+          "on": "playerJoin"
+        },
+        "then": [
+          {
+            "do": "respawn",
+            "player": "self",
+            "to": {
+              "vec3": [
+                250,
+                0.1,
+                167.3
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "when": {
+          "on": "action",
+          "name": "travel"
+        },
+        "then": [
+          {
+            "do": "teleport",
+            "player": "self",
+            "to": {
+              "var": "action.args.destination"
+            }
+          }
+        ],
+        "if": {
+          "op": "<",
+          "a": {
+            "op": "distance",
+            "a": {
+              "var": "action.args.destination"
+            },
+            "b": {
+              "vec3": [
+                0,
+                0,
+                0
+              ]
+            }
+          },
+          "b": 15000
+        }
+      }
+    ]
+  }
 }

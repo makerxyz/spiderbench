@@ -1,128 +1,174 @@
-// OWNER: traversal engineer. Keyboard + mouse (pointer lock) + Gamepad API + touch (mobile).
-// Exposes raw state plus high-level "actions" sampled once per frame via poll().
-//
-// Bindings (Insomniac layout):
-//   Keyboard/mouse                          Gamepad (standard mapping)
-//   WASD / arrows   move (camera relative)  LS
-//   Mouse           camera                  RS
-//   RIGHT MOUSE     web-swing (hold)        R2 (in air)
-//   Shift           WALK (held, on the ground) / wall run + parkour on walls    R2 = parkour on ground / walls, swing in air
-//                   (user r12: ground sprint was removed in r4; on the pad, walk = light stick tilt)
-//   Space           jump (hold = charge)    A / Cross
-//   E / MIDDLE MOUSE web-zip / point-launch L2 + R2  (or Y / Triangle)
-//   C / Ctrl        drop / dive             B / Circle
-//   Q               quick web boost (air)   L1 / LB — one-hand web to a far point ahead + forward boost (not in combat: Q = finisher)
-//   Ctrl (held, on the ground) + LMB / RMB  web slingshot: anchor a web to the left / right building (no swing / attack)
-//   T               web tightrope (perched only): web to the highlighted point, then walk it (W / S)   —
-//
-// state: move {x,y} (x = right, y = forward, -1..1), look {dx,dy} (pixels-equivalent),
-//   swing, sprint, walk (Shift only, keyboard), jump, zip, drop, quick, rope (T) (held) + <name>Pressed / <name>Released edge flags, jumpHeld (seconds),
-//   aimT (seconds since the last deliberate camera move), usingPad.
-import { createTouch } from './touch.js';
+// One platform router owns keyboard, mouse, gamepad, automation and generated touch controls.
+// CharacterMultiplayer pumps it once per frame. poll() only adapts that snapshot to traversal.
+import { InputService, createMobileControls } from '@helix/humanoid-character';
 
-// Automation: input.press('KeyW' | 'Space' | 'MouseRight' | 'MouseMiddle' ...), input.release(code), input.releaseAll().
-export function createInput(el) {
-  const keys = new Set(); const tapped = new Set(); // tapped: keys pressed since last poll (latched so short taps are never lost)
-  const mouse = { dx: 0, dy: 0, buttons: 0 };
-  const synthetic = new Set();
-  const touch = createTouch(el); // mobile: virtual joystick + camera drag + action buttons
-  const isTyping = e => /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName || '');
-  addEventListener('keydown', e => {
-    if (isTyping(e)) return;
-    if (!e.repeat) tapped.add(e.code); keys.add(e.code);
-    if (['Space', 'Tab', 'ControlLeft', 'KeyC'].includes(e.code) && !e.metaKey) e.preventDefault();
-    // web slingshot walks back with Ctrl held: never let Ctrl+S (save page) / Ctrl+D / Ctrl+A etc. reach the browser
-    if (e.ctrlKey && /^(Key[WASDEFQRCZ]|Space|Arrow)/.test(e.code)) e.preventDefault();
-  });
-  addEventListener('keyup', e => keys.delete(e.code));
-  addEventListener('blur', () => { keys.clear(); mouse.buttons = 0; });
-  el.addEventListener('click', () => { try { el.requestPointerLock?.(); } catch {} });
-  addEventListener('mousemove', e => {
-    // release-only resync: a mouseup lost outside the window (no pointer lock) must never leave the web stuck on.
-    // (DOM MouseEvent.buttons: 1 left, 2 right, 4 middle — our bits are 1 << e.button: 1 left, 2 middle, 4 right)
-    // Only WITHOUT pointer lock: some browsers (e.g. Firefox on Linux/Wayland) report buttons=0 on pointer-locked
-    // mousemove, which would drop a held web mid-swing. Under pointer lock mousedown/mouseup are authoritative.
-    if (typeof e.buttons === 'number' && !document.pointerLockElement) {
-      if ((mouse.buttons & 4) && !(e.buttons & 2)) mouse.buttons &= ~4;
-      if ((mouse.buttons & 2) && !(e.buttons & 4)) mouse.buttons &= ~2;
-    }
-    if (document.pointerLockElement) { mouse.dx += e.movementX; mouse.dy += e.movementY; }
-    else if (mouse.buttons & 1) { mouse.dx += e.movementX; mouse.dy += e.movementY; } // drag-to-orbit without lock
-  });
-  const tappedBtn = { v: 0 };
-  // web slingshot: while Ctrl is held and the gate is open (player on the ground, set by player.js each frame), LMB / RMB
-  // clicks are routed to sling.left / sling.right presses and never reach mouse.buttons (no swing, no attack)
-  const sling = { gate: false, tap: 0, held: 0 };
-  const ctrlHeld = e => e.ctrlKey || keys.has('ControlLeft') || keys.has('ControlRight') || synthetic.has('ControlLeft');
-  addEventListener('mousedown', e => {
-    if ((e.button === 0 || e.button === 2) && sling.gate && ctrlHeld(e)) { sling.tap |= 1 << e.button; sling.held |= 1 << e.button; e.preventDefault(); return; }
-    mouse.buttons |= 1 << e.button; tappedBtn.v |= 1 << e.button; if (e.button === 1) e.preventDefault(); });
-  addEventListener('mouseup', e => { mouse.buttons &= ~(1 << e.button); sling.held &= ~(1 << e.button); });
-  addEventListener('contextmenu', e => e.preventDefault());
-  addEventListener('auxclick', e => e.preventDefault());
+export const SPIDER_ACTIONS = {
+  swing: { label: 'Swing', touch: 'hold' },
+  zip: { mouseButtons: [1], label: 'Zip', touch: 'button' },
+  quick: { keys: ['KeyJ'], label: 'Web boost', touch: 'button' },
+  rope: { keys: ['KeyY'], label: 'Tightrope', touch: 'button' },
+  drop: { keys: ['KeyC'], gamepadButtons: [1], label: 'Drop / dodge', touch: 'hold' },
+  slingshot: { keys: ['ControlLeft', 'ControlRight'], label: 'Slingshot stance', touch: 'hold' },
+  slingLeft: { label: 'Left anchor', touch: 'button' },
+  slingRight: { label: 'Right anchor', touch: 'button' },
+  attack: { label: 'Attack', touch: 'button' },
+  web: { keys: ['KeyU'], label: 'Web shooter', touch: 'button' },
+  strike: { keys: ['KeyK'], label: 'Web strike', touch: 'button' },
+  throw: { keys: ['KeyO'], label: 'Throw', touch: 'button' },
+  finisher: { keys: ['KeyL'], label: 'Finisher', touch: 'button' },
+  heal: { keys: ['Semicolon'], label: 'Heal', touch: 'button' },
+  help: { keys: ['KeyH'], label: 'Help', touch: 'none' },
+};
 
-  const prev = {};
-  const state = {
-    move: { x: 0, y: 0 }, look: { dx: 0, dy: 0 }, usingPad: false,
-    swing: false, jump: false, zip: false, sprint: false, walk: false, drop: false, quick: false, rope: false, jumpHeld: 0, aimT: 99,
+// Existing menus retain their key-oriented callbacks; these are semantic router actions,
+// including controller and touch bindings, translated at the UI boundary (never DOM events).
+export const MENU_ACTIONS = [
+  ['menu', 'Escape', ['F10'], 'gameplay', [9], 'Pause', 'button'],
+  ['map', 'KeyM', ['KeyM'], 'gameplay', [8], 'Map', 'button'],
+  ['photo', 'KeyV', ['KeyV'], 'gameplay', [], 'Photo', 'button'],
+  ['dev', 'Backquote', ['F8'], 'gameplay', [], 'Developer', 'none'],
+  ['menu.close', 'Escape', ['F10', 'Backspace'], 'spider.menu', [9, 1], 'Resume', 'button'],
+  ['menu.map', 'KeyM', ['KeyM'], 'spider.menu', [8], 'Map', 'none'],
+  ['menu.previous', 'KeyQ', ['KeyQ'], 'spider.menu', [4], 'Previous tab', 'button'],
+  ['menu.next', 'KeyE', ['KeyE'], 'spider.menu', [5], 'Next tab', 'button'],
+  ['menu.confirm', 'Enter', ['Enter', 'NumpadEnter', 'Space'], 'spider.menu', [0], 'Select', 'button'],
+  ['menu.up', 'ArrowUp', ['ArrowUp', 'KeyW'], 'spider.menu', [12], 'Up', 'none'],
+  ['menu.down', 'ArrowDown', ['ArrowDown', 'KeyS'], 'spider.menu', [13], 'Down', 'none'],
+  ['menu.left', 'ArrowLeft', ['ArrowLeft', 'KeyA'], 'spider.menu', [14], 'Left', 'none'],
+  ['menu.right', 'ArrowRight', ['ArrowRight', 'KeyD'], 'spider.menu', [15], 'Right', 'none'],
+  ['menu.zoomIn', 'Equal', ['Equal', 'NumpadAdd'], 'spider.menu', [], 'Zoom in', 'button'],
+  ['menu.zoomOut', 'Minus', ['Minus', 'NumpadSubtract'], 'spider.menu', [], 'Zoom out', 'button'],
+  ['menu.center', 'KeyC', ['KeyC'], 'spider.menu', [], 'Center map', 'button'],
+  ['dev.close', 'Escape', ['F8', 'Backspace'], 'spider.dev', [], 'Close developer', 'button'],
+  ...['Escape', 'Enter', 'KeyH', 'KeyR', 'KeyQ', 'KeyE', 'Delete', 'Backspace', 'KeyG', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyC', 'ShiftLeft', 'ShiftRight'].map(code => [
+    `photo.${code}`, code, code === 'Escape' ? ['KeyP'] : code === 'Enter' ? ['Enter', 'NumpadEnter'] : [code], 'spider.photo', [], code === 'Escape' ? 'Exit photo' : code === 'Enter' ? 'Capture' : code, ['Escape', 'Enter'].includes(code) ? 'button' : 'none',
+  ]),
+];
+
+export function createInput(el, { router = new InputService(), attach = true } = {}) {
+  for (const [name, def] of Object.entries(SPIDER_ACTIONS)) router.registerAction(`spider.${name}`, { kind: 'button', context: 'spider.onfoot', ...def }, 'spiderbench');
+  for (const [name, , keys, context, gamepadButtons, label, touch] of MENU_ACTIONS) {
+    router.registerAction(`spider.${name}`, { kind: 'button', keys, context, gamepadButtons, label, touch }, 'spiderbench');
+  }
+  if (attach) {
+    router.attach(window);
+    // Platform mobile controls capture touch gestures before this bubble listener, so desktop
+    // unlocked drag and pointer lock work without delivering touch look twice.
+    router.attachPointer(el, document, { dragLook: true });
+  }
+  let mobile = null, onFoot = true;
+  const aliases = { 'spider.swing': 'secondary', 'spider.attack': 'primary', 'spider.zip': 'reload' };
+  const fallbackBindings = {
+    'spider.swing': { mouseButtons: [2], gamepadButtons: [6] },
+    'spider.attack': { mouseButtons: [0], gamepadButtons: [7] },
+    'spider.zip': { keys: ['KeyR'], gamepadButtons: [3] },
   };
-  const dz = v => (Math.abs(v) < 0.15 ? 0 : (v - Math.sign(v) * 0.15) / 0.85);
-  const has = c => keys.has(c) || synthetic.has(c) || tapped.has(c);
-  const BTN = { MouseLeft: 1, MouseMiddle: 2, MouseRight: 4 };
-
+  const nativeAvailable = new Map();
+  function syncBindings() {
+    for (const [custom, native] of Object.entries(aliases)) {
+      const available = router.hasAction(native);
+      if (nativeAvailable.get(custom) === available) continue;
+      nativeAvailable.set(custom, available);
+      router.rebind(custom, Object.fromEntries(Object.entries(fallbackBindings[custom]).map(([key, value]) => [key, available ? [] : value])));
+    }
+  }
+  syncBindings();
+  const directDown = name => router.hasAction(name) && router.isDown(name);
+  const directEdge = name => router.hasAction(name) && router.wasPressed(name);
+  const alias = name => onFoot && router.isContextActive('spider.onfoot') ? aliases[name] : null;
+  const frameHandlers = new Set();
+  const down = name => directDown(name) || !!(alias(name) && directDown(alias(name)));
+  const edge = name => directEdge(name) || !!(alias(name) && directEdge(alias(name)));
+  const sampled = name => down(name) || edge(name);
+  const sling = { gate: false };
+  const state = { move: { x: 0, y: 0 }, look: { dx: 0, dy: 0 }, jumpHeld: 0, aimT: 99 };
+  const prev = {};
+  const mouseCodes = { MouseLeft: 0, MouseMiddle: 1, MouseRight: 2 };
+  const press = code => code in mouseCodes ? router.mouseDown(mouseCodes[code]) : router.keyDown(code);
+  const release = code => code in mouseCodes ? router.mouseUp(mouseCodes[code]) : router.keyUp(code);
+  function releaseAll() {
+    router.releaseAll();
+    for (const action of router.actions()) {
+      if (action.kind === 'button' || action.kind === 'toggle') router.setVirtualButton(action.name, null);
+      else if (action.kind === 'vec2') router.setVirtualVec2(action.name, null);
+      else if (action.kind === 'delta') router.setVirtualDelta(action.name, null);
+    }
+    for (const name of Object.keys(prev)) prev[name] = false;
+  }
+  // Compatibility for callers that used the old key Set. State comes from the router,
+  // including context gating and rebinding; no independent physical-key cache exists.
+  const keys = {
+    has(code) {
+      return router.actions().some(a => down(a.name) && a.bindings.keys?.includes(code));
+    },
+    add: press, delete: release, clear: releaseAll,
+  };
+  const mouse = {
+    get buttons() { return (down('spider.attack') ? 1 : 0) | (down('spider.zip') ? 2 : 0) | (down('spider.swing') ? 4 : 0); },
+    set buttons(value) { if (!value) for (const button of [0, 1, 2]) router.mouseUp(button); },
+  };
   function poll(dt = 1 / 60) {
-    let mx = 0, my = 0;
-    if (has('KeyW') || has('ArrowUp')) my += 1;
-    if (has('KeyS') || has('ArrowDown')) my -= 1;
-    if (has('KeyD') || has('ArrowRight')) mx += 1;
-    if (has('KeyA') || has('ArrowLeft')) mx -= 1;
-    if (touch.enabled) { mx += touch.state.moveX; my += touch.state.moveY; }
-    let lx = mouse.dx, ly = mouse.dy; mouse.dx = mouse.dy = 0;
-    if (touch.enabled) { const tl = touch.consumeLook(); lx += tl.dx; ly += tl.dy; }
-    let btn = mouse.buttons | tappedBtn.v; tappedBtn.v = 0;
-    for (const [k, b] of Object.entries(BTN)) if (synthetic.has(k)) btn |= b;
-    let swing = !!(btn & 4) || touch.held.swing || touch.tapped.has('swing');
-    let sprint = has('ShiftLeft') || has('ShiftRight') || touch.held.walk;
-    const walk = false; // user r12 Shift-walk DISABLED (user r-nowalk: "disable walking"): Shift = ground parkour / wall-run again
-    let jump = has('Space') || touch.held.jump || touch.tapped.has('jump');
-    let zip = has('KeyE') || !!(btn & 2) || touch.held.zip || touch.tapped.has('zip');
-    let quick = has('KeyQ') || touch.held.quick || touch.tapped.has('quick');
-    const rope = has('KeyT');
-    let drop = has('KeyC') || has('ControlLeft') || has('ControlRight') || touch.held.drop || touch.tapped.has('drop');
-    const ctrl = keys.has('ControlLeft') || keys.has('ControlRight') || synthetic.has('ControlLeft') || synthetic.has('ControlRight');
-    const slingL = !!(sling.tap & 1), slingR = !!(sling.tap & 4); sling.tap = 0;
-    let usingPad = false;
-    const pads = navigator.getGamepads ? navigator.getGamepads() : [];
-    for (const p of pads) {
-      if (!p || p.mapping !== 'standard') continue;
-      const ax = dz(p.axes[0]), ay = dz(p.axes[1]), rx = dz(p.axes[2]), ry = dz(p.axes[3]);
-      const b = i => !!p.buttons[i]?.pressed;
-      const rt = (p.buttons[7]?.value ?? 0) > 0.3, lt = (p.buttons[6]?.value ?? 0) > 0.3;
-      if (ax || ay || rx || ry || rt || lt || b(0) || b(1) || b(3)) usingPad = true;
-      mx += ax; my -= ay;
-      lx += rx * 900 * dt; ly += ry * 600 * dt;
-      // L2+R2 = web-zip (R2 then no longer swings); R2 alone = swing in air / parkour on ground
-      const zipCombo = lt && rt;
-      quick ||= b(4) && !b(5); // L1 alone (L1+R1 = combat throw)
-      swing ||= rt && !zipCombo; sprint ||= rt && !zipCombo; jump ||= b(0); zip ||= zipCombo || b(3); drop ||= b(1);
+    const move = router.hasAction('move') ? router.vec2('move') : { x: 0, y: 0 };
+    const look = router.lookDelta();
+    const stick = router.hasAction('look') ? router.vec2('look') : { x: 0, y: 0 };
+    const ctrl = down('spider.slingshot');
+    const anchoring = ctrl && sling.gate;
+    Object.assign(state, {
+      move: { ...move }, look: { dx: look.x + stick.x * 900 * dt, dy: look.y - stick.y * 600 * dt },
+      usingPad: router.activeDevice() === 'gamepad',
+      swing: sampled('spider.swing') && !anchoring, jump: sampled('jump'), zip: sampled('spider.zip'),
+      sprint: sampled('sprint'), walk: false, drop: sampled('spider.drop'), quick: sampled('spider.quick'), rope: sampled('spider.rope'), ctrl,
+      slingL: sling.gate && (edge('spider.slingLeft') || (anchoring && edge('spider.attack'))),
+      slingR: sling.gate && (edge('spider.slingRight') || (anchoring && edge('spider.swing'))),
+    });
+    for (const name of ['swing', 'jump', 'zip', 'drop', 'sprint', 'walk', 'quick', 'rope']) {
+      const id = ['jump', 'sprint'].includes(name) ? name : `spider.${name}`;
+      state[`${name}Pressed`] = state[name] && (edge(id) || !prev[name]);
+      state[`${name}Released`] = !state[name] && !!prev[name];
+      prev[name] = state[name];
     }
-    tapped.clear();
-    touch.tapped.clear();
-    const len = Math.hypot(mx, my); if (len > 1) { mx /= len; my /= len; }
-    Object.assign(state, { move: { x: mx, y: my }, look: { dx: lx, dy: ly }, swing, jump, zip, drop, sprint, walk, quick, rope, usingPad, ctrl, slingL, slingR });
-    for (const k of ['swing', 'jump', 'zip', 'drop', 'sprint', 'walk', 'quick', 'rope']) {
-      state[k + 'Pressed'] = state[k] && !prev[k];
-      state[k + 'Released'] = !state[k] && prev[k];
-      prev[k] = state[k];
-    }
-    state.jumpHeld = jump ? state.jumpHeld + dt : 0;
-    state.aimT = Math.abs(lx) + Math.abs(ly) > 1.5 ? 0 : state.aimT + dt;
+    state.jumpHeld = state.jump ? state.jumpHeld + dt : 0;
+    state.aimT = Math.abs(state.look.dx) + Math.abs(state.look.dy) > 1.5 ? 0 : state.aimT + dt;
     return state;
   }
-
   return {
-    keys, mouse, state, poll, sling,
-    press(code) { synthetic.add(code); }, release(code) { synthetic.delete(code); }, releaseAll() { synthetic.clear(); },
-    consumeMouse() { const r = { dx: mouse.dx, dy: mouse.dy }; mouse.dx = mouse.dy = 0; return r; },
+    router, keys, mouse, sling, state, poll, press, release, releaseAll, down, edge,
+    get onFoot() { return onFoot; },
+    hint(name) { return router.hint(aliases[name] && router.hasAction(aliases[name]) ? aliases[name] : name); },
+    setOnFoot(value) {
+      onFoot = value;
+      const contexts = router.activeContexts();
+      if (contexts.every(c => c === 'gameplay' || c === 'spider.onfoot')) {
+        const wanted = value ? ['gameplay', 'spider.onfoot'] : ['gameplay'];
+        if (contexts.join() !== wanted.join()) router.setContexts(wanted);
+      }
+    },
+    get mobile() { return mobile; },
+    refreshBindings() {
+      syncBindings();
+      if (router.hasAction('walk')) router.rebind('walk', { keys: ['AltLeft'] });
+      if (router.hasAction('crouch')) router.rebind('crouch', { keys: [], gamepadButtons: [] });
+      mobile?.refresh();
+    },
+    mountMobile(options = {}) {
+      this.setOnFoot(true);
+      this.refreshBindings();
+      mobile?.destroy();
+      mobile = createMobileControls(router, {
+        surface: el,
+        actions: [
+          { id: 'jump', order: 0 }, { id: 'spider.swing', order: 1, placement: 'primary' }, { id: 'spider.zip', order: 2 },
+          ...['menu', 'map', 'photo'].map(id => ({ id: `spider.${id}`, placement: 'utility' })),
+          { id: 'crouch', visible: false },
+        ],
+        theme: { accent: '#e63e49' }, ...options,
+      });
+      return mobile;
+    },
+    updateMobile() { syncBindings(); mobile?.update(); },
+    // Call after mp.update(); read-only consumers share exactly that frame's edges.
+    updateUI(dt) { for (const fn of frameHandlers) fn(dt); },
+    onFrame(fn) { frameHandlers.add(fn); return () => frameHandlers.delete(fn); },
+    dispose() { mobile?.destroy(); mobile = null; frameHandlers.clear(); router.dispose(); },
   };
 }

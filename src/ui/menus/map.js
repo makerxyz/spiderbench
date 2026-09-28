@@ -462,7 +462,7 @@ export function createMapPage(sys) {
   cv.addEventListener('mouseleave', () => { mouse = null; dirty = true; });
 
   const held = new Set();
-  addEventListener('keyup', e => held.delete(e.code));
+  sys.flow.onKeyUp(e => held.delete(e.code));
 
   return {
     id: 'map', title: 'Map', el, reveal,

@@ -1,0 +1,81 @@
+{
+  "lockfileVersion": 1,
+  "systems": [
+    {
+      "kind": "system",
+      "slug": "humanoid-character",
+      "range": "^0.3",
+      "version": "0.3.109",
+      "codeUrl": "https://eu.instant-packages.dev.helix-cdn.com/packages/d613178d-2c04-409e-a1c3-dd1d51d03011/9ce593a0-3c5e-4a5a-bc8e-b7827678942b/code",
+      "codeFiles": [
+        "ability-manifest.d.ts",
+        "ability-manifest.js",
+        "addons.d.ts",
+        "addons.js",
+        "capabilities.json",
+        "helix.json",
+        "index.d.ts",
+        "index.js",
+        "part-textures.d.ts",
+        "part-textures.js",
+        "recoil-pattern.d.ts",
+        "recoil-pattern.js"
+      ],
+      "assetBaseUrl": "https://eu.instant-packages.dev.helix-cdn.com/packages/5a01a107-6b12-4136-8fb7-97173aea9be5/61d8ccf2-195f-45b0-bf78-b479c8af1ed0/assets",
+      "assetPack": {
+        "slug": "humanoid-character-assets",
+        "version": "0.1.11",
+        "range": "^0.1",
+        "assetBaseUrl": "https://eu.instant-packages.dev.helix-cdn.com/packages/5a01a107-6b12-4136-8fb7-97173aea9be5/61d8ccf2-195f-45b0-bf78-b479c8af1ed0/assets"
+      },
+      "three": "0.185.1-helix.1",
+      "rapier": "0.14.0"
+    },
+    {
+      "kind": "system",
+      "slug": "engine-core",
+      "range": "^0.1.2",
+      "version": "0.1.22",
+      "codeUrl": "https://eu.instant-packages.dev.helix-cdn.com/packages/342f47a4-6b7b-4e6f-a7a9-fa86c8e06433/442e3540-1880-4bec-ae54-792333ecc545/code",
+      "codeFiles": [
+        "audio/index.d.ts",
+        "audio/index.js",
+        "audio/testing/index.d.ts",
+        "audio/testing/index.js",
+        "audio/vehicle/index.d.ts",
+        "audio/vehicle/index.js",
+        "camera-contract/index.d.ts",
+        "camera-contract/index.js",
+        "chunk-4VDXPPV2.js",
+        "chunk-DCPGBZMW.js",
+        "chunk-KBNPYYGO.js",
+        "chunk-LHZI6PZR.js",
+        "chunk-QSUWU63U.js",
+        "chunk-UZQQMU5O.js",
+        "chunk-WZ56MY3Z.js",
+        "EventAudio-Fv5lxzXF.d.ts",
+        "fidelity/index.d.ts",
+        "fidelity/index.js",
+        "helix.json",
+        "hud/index.d.ts",
+        "hud/index.js",
+        "index.d.ts",
+        "index.js",
+        "inspect/index.d.ts",
+        "inspect/index.js",
+        "screenshot/index.d.ts",
+        "screenshot/index.js",
+        "telemetry-DQd7oLfX.d.ts",
+        "weather/index.d.ts",
+        "weather/index.js",
+        "webaudio-BtFui7fK.d.ts",
+        "world-camera/index.d.ts",
+        "world-camera/index.js",
+        "WorldAudio-C2eu_oOd.d.ts",
+        "WorldCamera-KfWzoZGo.d.ts"
+      ],
+      "assetBaseUrl": null
+    }
+  ],
+  "abilities": []
+}
