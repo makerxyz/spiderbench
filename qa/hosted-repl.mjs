@@ -1,7 +1,7 @@
 // Task-owned, headless acceptance console. Credentials stay in memory and are never printed.
 // Usage: node qa/hosted-repl.mjs <canonical play URL>
 import { chromium } from 'playwright';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, unlink } from 'node:fs/promises';
 import { createInterface } from 'node:readline';
 import os from 'node:os';
 import path from 'node:path';
@@ -21,6 +21,7 @@ const beforeIds = new Set(beforePlacements.map(v => v.placementId));
 const slots = await api('/api/v1/universal-items/quick-slots/me');
 const vehicleSlot = Object.entries(slots.slots).find(([, v]) => v?.kind === 'vehicle' && v.restingAt?.type === 'inventory');
 const browser = await chromium.launch({ headless: true, args: process.platform === 'darwin' ? ['--use-angle=metal', '--enable-gpu'] : ['--enable-gpu'] });
+await writeFile(path.join(evidenceDir, 'hosted.pid'), String(process.pid));
 let context = await browser.newContext({ viewport: { width: 1100, height: 700 } });
 // Iterate against the authentic shell without publishing every diagnostic build.
 // Acceptance of a release must run without --local so it exercises the CDN bytes.
@@ -81,10 +82,14 @@ async function wheelSlot(slot) {
   await petal.waitFor({ state: 'visible', timeout: 20000 }); await petal.hover(); await page.keyboard.up('g');
 }
 async function cleanup() {
-  const current = await api('/api/v1/worlds/spiderbench/spawned-items');
-  for (const placed of current) if (!beforeIds.has(placed.placementId) && placed.instanceId === vehicleSlot?.[1].instanceId) await api(`/api/v1/universal-items/inventory/me/${placed.instanceId}/spawn`, { method: 'DELETE' });
-  await checkpoint('cleanup', { remainingTaskPlacements: (await api('/api/v1/worlds/spiderbench/spawned-items')).filter(v => !beforeIds.has(v.placementId) && v.instanceId === vehicleSlot?.[1].instanceId).length });
-  await context.close(); await browser.close();
+  try {
+    const current = await api('/api/v1/worlds/spiderbench/spawned-items');
+    for (const placed of current) if (!beforeIds.has(placed.placementId) && placed.instanceId === vehicleSlot?.[1].instanceId) await api(`/api/v1/universal-items/inventory/me/${placed.instanceId}/spawn`, { method: 'DELETE' });
+    await checkpoint('cleanup', { remainingTaskPlacements: (await api('/api/v1/worlds/spiderbench/spawned-items')).filter(v => !beforeIds.has(v.placementId) && v.instanceId === vehicleSlot?.[1].instanceId).length });
+  } finally {
+    await context.close(); await browser.close();
+    await unlink(path.join(evidenceDir, 'hosted.pid')).catch(() => {});
+  }
 }
 process.on('SIGTERM', () => { void cleanup().finally(() => process.exit(0)); });
 console.log('CONSOLE_READY', JSON.stringify({ playUrl, vehicleSlot: vehicleSlot?.[0], vehicle: vehicleSlot?.[1].title }));

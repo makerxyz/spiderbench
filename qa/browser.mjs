@@ -1,11 +1,12 @@
 import { chromium } from 'playwright';
 import { createServer } from 'node:http';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, unlink } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 import assert from 'node:assert/strict';
 const mobile = process.argv.includes('--mobile');
 const root = resolve('dist'), evidence = resolve('qa/evidence');
 await mkdir(evidence, {recursive:true});
+await writeFile(resolve(evidence,'browser.pid'),String(process.pid));
 const mime = {'.js':'application/javascript','.json':'application/json','.html':'text/html','.css':'text/css','.webp':'image/webp','.ttf':'font/ttf','.bin':'application/octet-stream'};
 const server = createServer(async(req,res)=>{
  try {const url=new URL(req.url,'http://localhost');const rel=decodeURIComponent(url.pathname).replace(/^\/world\//,'')||'index.html';const file=resolve(root,rel);if(!file.startsWith(root+'/')){res.writeHead(403).end();return;}const data=await readFile(file);res.writeHead(200,{'content-type':mime[extname(file)]||'application/octet-stream'}).end(data);}catch{res.writeHead(404).end();}
@@ -76,4 +77,4 @@ try{
  await writeFile(resolve(evidence,'browser-local.json'),JSON.stringify({errors,logs,requests,before,after},null,2));
  }
 }catch(e){log('failed',e.stack);await page.screenshot({path:resolve(evidence,'failed.png'),timeout:15000}).catch(()=>{});await writeFile(resolve(evidence,'browser-local.json'),JSON.stringify({errors,logs,requests},null,2));process.exitCode=1}
-finally{await context.close();await browser.close();await new Promise(r=>server.close(r));}
+finally{await context.close();await browser.close();await new Promise(r=>server.close(r));await unlink(resolve(evidence,'browser.pid')).catch(()=>{});}
