@@ -1,0 +1,12 @@
+{
+  "source": "Authenticated HELIX shell, published Spiderbench CDN build 3",
+  "action": "Opened HELIX OS Camera and clicked Capture photo",
+  "beforeLastCaptureCount": 0,
+  "afterLastCaptureCount": 1,
+  "blobType": "image/jpeg",
+  "bytes": 156832,
+  "width": 1100,
+  "height": 384,
+  "image": "qa/receipts/2026-09-28-native-camera-capture.jpg",
+  "visualInspection": "Rendered Manhattan street, vehicles and NPCs; nonblank image."
+}

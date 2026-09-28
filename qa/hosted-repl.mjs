@@ -15,7 +15,7 @@ async function api(route, init = {}) {
   if (!r.ok) throw new Error(`${init.method ?? 'GET'} ${route}: HTTP ${r.status}`);
   return d?.item ?? d?.items ?? d;
 }
-const evidence = { pageErrors: [], httpErrors: [], logs: [], navigations: [], checkpoints: {} };
+const evidence = { pageErrors: [], httpErrors: [], logs: [], navigations: [], transportEvents: [], checkpoints: {} };
 const beforePlacements = await api('/api/v1/worlds/spiderbench/spawned-items');
 const beforeIds = new Set(beforePlacements.map(v => v.placementId));
 const slots = await api('/api/v1/universal-items/quick-slots/me');
@@ -42,13 +42,34 @@ function observe(p) {
   p.on('framenavigated', f => { if (/instant-worlds/.test(f.url())) { evidence.navigations.push({ at: Date.now(), url: f.url() }); console.log('WORLD_FRAME', f.url()); } });
   p.on('pageerror', e => { evidence.pageErrors.push(e.message); console.log('PAGEERROR', e.message); });
   p.on('response', r => { if (r.status() >= 400) evidence.httpErrors.push({ url: r.url().split('?')[0], status: r.status() }); });
-  p.on('console', m => { if (/warmup|city|systems|\[profile\]|shared-room|shell-probe/i.test(m.text()) || m.type() === 'error') { evidence.logs.push(m.text()); console.log(m.text()); } });
+  p.on('console', m => {
+    if (m.text().startsWith('[qa-transport] ')) {
+      try { evidence.transportEvents.push(JSON.parse(m.text().slice('[qa-transport] '.length))); } catch {}
+    }
+    if (/warmup|city|systems|\[profile\]|shared-room|shell-probe|qa-transport|colyseus|onDrop|onReconnect|onLeave/i.test(m.text()) || m.type() === 'error') { evidence.logs.push(m.text()); console.log(m.text()); }
+  });
 }
 observe(page);
 await context.addInitScript(() => {
-  if (window.top !== window) return;
+  const safeUrl = value => { try { const u = new URL(value); return u.host + u.pathname; } catch { return 'unparseable'; } };
+  const emit = (type, data) => console.info('[qa-transport]', JSON.stringify({ at: Date.now(), frame: window.top === window ? 'parent' : 'child', type, ...data }));
+  const NativeWebSocket = window.WebSocket;
+  window.WebSocket = new Proxy(NativeWebSocket, {
+    construct(Target, args) {
+      const socket = Reflect.construct(Target, args);
+      const url = safeUrl(args[0]);
+      socket.addEventListener('close', event => emit('websocket-close', { url, code: event.code, reason: event.reason, wasClean: event.wasClean }));
+      socket.addEventListener('error', () => emit('websocket-error', { url }));
+      return socket;
+    },
+  });
+  try { new PerformanceObserver(list => { for (const entry of list.getEntries()) if (entry.duration >= 250) emit('longtask', { durationMs: Math.round(entry.duration) }); }).observe({ type: 'longtask', buffered: true }); } catch {}
   addEventListener('message', e => {
-    if (e.data?.type === 'helix:multiplayer-state') console.log('[shell-probe]', JSON.stringify({ at: performance.now(), type: e.data.type, roomId: e.data.state?.roomId ?? null, playerCount: e.data.state?.playerCount ?? null }));
+    if (window.top === window && e.data?.type === 'helix:multiplayer-state') {
+      const iframe = document.querySelector('iframe[src*="instant-worlds"]');
+      emit('multiplayer-state', { currentIframe: e.source === iframe?.contentWindow, iframeUrl: iframe ? safeUrl(iframe.src) : null, roomId: e.data.state?.roomId ?? null, playerCount: e.data.state?.playerCount ?? null });
+    }
+    if (window.top !== window && e.data?.type === 'helix:leave') emit('leave-message', {});
   });
 });
 await page.goto('https://new.helixgame.com/login', { waitUntil: 'domcontentloaded', timeout: 60000 });
