@@ -10,10 +10,11 @@ As of September 27, 2026, the active published revision is build 2 (`4b431132-54
 
 - Universal Avatar, native camera/emotes, shared vehicle physics, unified platform input and touch controls are integrated.
 - Asset preparation keeps the city and geometry while reducing the published bundle to about 47.47 MiB.
-- Twenty-six focused tests and the production build pass with the latest startup adjustment. Local nested-path browser testing rendered gameplay, animated the avatar, and moved it about 13 metres without audio request failures.
+- Twenty-eight focused tests and the production build pass with the latest startup and mobile changes. Local nested-path browser testing rendered gameplay, animated the avatar, and moved it about 13 metres without audio request failures. Authenticated shell testing moved the equipped avatar 11.68 metres with a stable room during that measurement.
 - Hosted testing confirmed the signed-in Universal Avatar and a joined multiplayer room, but exposed a startup reload: the shell starts a room deadline while the large city is still building.
 - The latest working change creates the native player and requires a managed room before building the city, then attaches city collision/traversal. Authenticated shell testing with the local build confirms room admission before city generation, the equipped avatar, rendered gameplay, and no input conflicts. These source changes still need publication.
 - The shell still remounts the iframe after clearing its room state during an unrelated effect teardown. The iframe URL and microphone epoch stay unchanged while the parent rejoin epoch increments; a valid room and roster were reported before the watchdog fires. A separate frontend owner is fixing that lifecycle issue on HELIX's integration branch. It is not a world asset-size or avatar-join failure.
+- Mobile emulation passed at 390x844 and 844x390: one native controller, touch movement over eight metres, all four bounded More pages, and a real touch hold activating a research tower. World activities now offer the native Interact button and yield to nearby vehicle seats. The controller's action metadata view keeps gameplay actions out of the native modal row while preserving the actual router's context gating.
 
 ## Remaining acceptance
 

@@ -8,6 +8,7 @@ const PAGES = [
 ];
 const NEXT_LABEL = ['Traversal', 'Combat', 'Platform', 'Back'];
 const CORE = new Set(['move', 'look', 'zoom', 'jump', 'interact']);
+const LABELS = { 'spider.quick': 'Boost', 'spider.drop': 'Drop', 'spider.slingshot': 'Sling', 'spider.slingLeft': 'Anchor L', 'spider.slingRight': 'Anchor R', 'spider.web': 'Web shot', 'spider.strike': 'Strike' };
 
 export function createMobileInputView(router, isOnFoot) {
   let page = 0;
@@ -24,7 +25,7 @@ export function createMobileInputView(router, isOnFoot) {
         if (action.name === 'spider.swing' || shown.has(action.name)) {
           // spider.onfoot is a gameplay layer, not a modal menu. The native HUD
           // lays out non-gameplay contexts as a single row of modal verbs.
-          return [{ ...action, context: 'gameplay' }];
+          return [{ ...action, context: 'gameplay', label: LABELS[action.name] ?? action.label }];
         }
         return [];
       });

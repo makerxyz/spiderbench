@@ -163,6 +163,7 @@ export function createInput(el, { router = new InputService(), attach = true } =
         actions: [
           { id: 'jump', order: 0 }, { id: 'spider.swing', order: 1, placement: 'primary' }, { id: 'spider.zip', order: 2 },
           { id: 'spider.mobilePage', order: 99 },
+          { id: 'emote', label: 'Quick slots' },
           ...['menu', 'map', 'photo'].map(id => ({ id: `spider.${id}`, placement: 'utility' })),
           { id: 'crouch', visible: false },
         ],
